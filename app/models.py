@@ -1,21 +1,21 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
-from database import Base
+from datetime import datetime
+from typing import List, Union
+
+from pydantic import BaseModel
 
 
-class User(Base):
-    __tablename__ = "users"
+class User(BaseModel):
+    id: int
+    name: str = "John Doe"
+    signup_ts: Union[datetime, None] = None
+    friends: List[int] = []
 
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
-    password = Column(String)
 
-
-class Message(Base):
-    __tablename__ = "messages"
-
-    id = Column(Integer, primary_key=True, index=True)
-    content = Column(String)
-    user_id = Column(Integer, ForeignKey("users.id"))
-
-    user = relationship("User")
+external_data = {
+    "id": "123",
+    "signup_ts": "2017-06-01 12:22",
+    "friends": [1, "2", b"3"],
+}
+user = User(**external_data)
+print(user)
+print(user.id)
