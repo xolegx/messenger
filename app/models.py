@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 
 
-class User(BaseModel):
-    id: int
-    age: int
-    username: str
-    user_info: str
+class Item(BaseModel):
+    product_id: int
+    name: str
+    category: str
+    price: float
