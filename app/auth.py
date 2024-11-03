@@ -1,31 +1,48 @@
-from datetime import datetime, timedelta
-from typing import Optional
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from . import models, schemas
-from .database import SessionLocal
+from fastapi import HTTPException, Depends, status
+from fastapi.security import OAuth2PasswordBearer
+import jwt
+from database import USERS_DATA
+from models import User
+import os
+from dotenv import load_dotenv
+from pathlib import Path
 
-SECRET_KEY = "your_secret_key"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+env_path = Path('.') / '.env'
+load_dotenv(dotenv_path=env_path)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
 
-def get_password_hash(password):
-    return pwd_context.hash(password)
+def create_jwt_token(data: dict):
+    tok = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+    print(SECRET_KEY,ALGORITHM)
+    return tok
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
 
-def get_user(db, username: str):
-    return db.query(models.User).filter(models.User.username == username).first()
+def get_user_from_token(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload.get("sub")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+def get_user(username: str):
+    if username in USERS_DATA:
+        user_data = USERS_DATA[username]
+        return User(**user_data)
+    return None
+
+

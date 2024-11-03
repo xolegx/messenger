@@ -9,3 +9,4 @@ aiogram==2.21.0
 
 pydantic==1.10.7
 python-dotenv==1.0.0
+pyjwt==2.9.0
