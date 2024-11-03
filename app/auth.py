@@ -1,24 +1,24 @@
-from fastapi import HTTPException, Depends, status
-from fastapi.security import OAuth2PasswordBearer
-import jwt
-from database import USERS_DATA
-from models import User
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+import jwt
 
+from fastapi import HTTPException, Depends, status
+from fastapi.security import OAuth2PasswordBearer
 
-env_path = Path('.') / '.env'
+from database import USERS_DATA
+from models import User
+
+env_path = Path('..') / '.env'
 load_dotenv(dotenv_path=env_path)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 
 
 def create_jwt_token(data: dict):
-    tok = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
-    print(SECRET_KEY,ALGORITHM)
-    return tok
+    return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def get_user_from_token(token: str = Depends(oauth2_scheme)):
@@ -44,5 +44,3 @@ def get_user(username: str):
         user_data = USERS_DATA[username]
         return User(**user_data)
     return None
-
-
