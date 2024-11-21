@@ -9,6 +9,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 
 import auth
+from models import Role
 
 app = FastAPI()
 
@@ -42,3 +43,11 @@ def get_user_info(current_user: str = Depends(auth.get_user_from_token)):
     if user_data.role != "user":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     return {"message": "Hello User!"}
+
+
+@app.get("/protected_resource/")
+def get_info(current_user: str = Depends(auth.get_user_from_token)):
+    user_data = auth.get_user(current_user)
+    if user_data.role not in [Role.ADMIN, Role.USER]:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+    return {"message": f"Hi user {user_data.username}!", "data": "sensitive data"}
