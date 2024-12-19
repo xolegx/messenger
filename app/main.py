@@ -8,8 +8,8 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 
-import auth
-from models import Role
+from app.users import auth
+from app.users.models import Role
 
 app = FastAPI()
 

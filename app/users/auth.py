@@ -7,9 +7,9 @@ from fastapi import HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer
 
 from database import USERS_DATA
-from models import User
+from app.users.models import User
 
-env_path = Path('..') / '.env'
+env_path = Path('../..') / '.env'
 load_dotenv(dotenv_path=env_path)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
