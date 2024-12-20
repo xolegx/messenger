@@ -1,53 +1,40 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-import os
-from typing import Annotated
-
-from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import FastAPI, Request
+from fastapi.responses import RedirectResponse
+from fastapi.exceptions import HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-
-from app.users import auth
-from app.users.models import Role
+from app.exceptions import TokenExpiredException, TokenNoFoundException
+from app.users.router import router as users_router
+from app.chat.router import router as chat_router
 
 app = FastAPI()
+app.mount('/static', StaticFiles(directory='app/static'), name='static')
 
-static_directory = os.path.join(os.path.dirname(__file__), '..', 'static')
-app.mount("/static", StaticFiles(directory=static_directory), name="static")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Разрешить запросы с любых источников. Можете ограничить список доменов
+    allow_credentials=True,
+    allow_methods=["*"],  # Разрешить все методы (GET, POST, PUT, DELETE и т.д.)
+    allow_headers=["*"],  # Разрешить все заголовки
+)
 
-
-@app.post("/token/")
-def login(user_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    user_data_from_db = auth.get_user(user_data.username)
-    if user_data_from_db is None or user_data.password != user_data_from_db.password:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return {"access_token": auth.create_jwt_token({"sub": user_data.username})}
+app.include_router(users_router)
+app.include_router(chat_router)
 
 
-@app.get("/admin/")
-def get_admin_info(current_user: str = Depends(auth.get_user_from_token)):
-    user_data = auth.get_user(current_user)
-    if user_data.role != "admin":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
-    return {"message": "Welcome Admin!"}
+@app.get("/")
+async def redirect_to_auth():
+    return RedirectResponse(url="/auth")
 
 
-@app.get("/user/")
-def get_user_info(current_user: str = Depends(auth.get_user_from_token)):
-    user_data = auth.get_user(current_user)
-    if user_data.role != "user":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
-    return {"message": "Hello User!"}
+@app.exception_handler(TokenExpiredException)
+async def token_expired_exception_handler(request: Request, exc: HTTPException):
+    # Возвращаем редирект на страницу /auth
+    return RedirectResponse(url="/auth")
 
 
-@app.get("/protected_resource/")
-def get_info(current_user: str = Depends(auth.get_user_from_token)):
-    user_data = auth.get_user(current_user)
-    if user_data.role not in [Role.ADMIN, Role.USER]:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
-    return {"message": f"Hi user {user_data.username}!", "data": "sensitive data"}
+# Обработчик для TokenNoFound
+@app.exception_handler(TokenNoFoundException)
+async def token_no_found_exception_handler(request: Request, exc: HTTPException):
+    # Возвращаем редирект на страницу /auth
+    return RedirectResponse(url="/auth")

@@ -1,46 +1,33 @@
-import os
-from dotenv import load_dotenv
-from pathlib import Path
-import jwt
-
-from fastapi import HTTPException, Depends, status
-from fastapi.security import OAuth2PasswordBearer
-
-from database import USERS_DATA
-from app.users.models import User
-
-env_path = Path('../..') / '.env'
-load_dotenv(dotenv_path=env_path)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
+from passlib.context import CryptContext
+from pydantic import EmailStr
+from jose import jwt
+from datetime import datetime, timedelta, timezone
+from app.config import get_auth_data
+from app.users.core import UsersCORE
 
 
-def create_jwt_token(data: dict):
-    return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+def create_access_token(data: dict) -> str:
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + timedelta(days=366)
+    to_encode.update({"exp": expire})
+    auth_data = get_auth_data()
+    encode_jwt = jwt.encode(to_encode, auth_data['secret_key'], algorithm=auth_data['algorithm'])
+    return encode_jwt
 
 
-def get_user_from_token(token: str = Depends(oauth2_scheme)):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload.get("sub")
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    except jwt.InvalidTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def get_user(username: str):
-    if username in USERS_DATA:
-        user_data = USERS_DATA[username]
-        return User(**user_data)
-    return None
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+async def authenticate_user(email: EmailStr, password: str):
+    user = await UsersCORE.find_one_or_none(email=email)
+    if not user or verify_password(plain_password=password, hashed_password=user.hashed_password) is False:
+        return None
+    return user
