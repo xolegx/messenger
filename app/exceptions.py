@@ -3,26 +3,26 @@ from fastapi import status, HTTPException
 
 class TokenExpiredException(HTTPException):
     def __init__(self):
-        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail="Токен истек")
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail="РўРѕРєРµРЅ РёСЃС‚РµРє")
 
 
 class TokenNoFoundException(HTTPException):
     def __init__(self):
-        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail="Токен не найден")
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail="РўРѕРєРµРЅ РЅРµ РЅР°Р№РґРµРЅ")
 
 
 UserAlreadyExistsException = HTTPException(status_code=status.HTTP_409_CONFLICT,
-                                           detail='Пользователь уже существует')
+                                           detail='РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚')
 
-PasswordMismatchException = HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Пароли не совпадают!')
+PasswordMismatchException = HTTPException(status_code=status.HTTP_409_CONFLICT, detail='РџР°СЂРѕР»Рё РЅРµ СЃРѕРІРїР°РґР°СЋС‚!')
 
 IncorrectEmailOrPasswordException = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                                  detail='Неверная почта или пароль')
+                                                  detail='РќРµРІРµСЂРЅР°СЏ РїРѕС‡С‚Р° РёР»Рё РїР°СЂРѕР»СЊ')
 
 NoJwtException = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                               detail='Токен не валидный!')
+                               detail='РўРѕРєРµРЅ РЅРµ РІР°Р»РёРґРЅС‹Р№!')
 
 NoUserIdException = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                  detail='Не найден ID пользователя')
+                                  detail='РќРµ РЅР°Р№РґРµРЅ ID РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ')
 
-ForbiddenException = HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Недостаточно прав!')
+ForbiddenException = HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ!')

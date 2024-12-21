@@ -1,12 +1,20 @@
+from typing import List
 from fastapi import APIRouter, Response
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
 from app.exceptions import UserAlreadyExistsException, IncorrectEmailOrPasswordException, PasswordMismatchException
 from app.users.auth import get_password_hash, authenticate_user, create_access_token
 from app.users.core import UsersCORE
-from app.users.schemas import SUserRegister, SUserAuth
+from app.users.schemas import SUserRegister, SUserAuth, SUserRead
+from fastapi.templating import Jinja2Templates
 
 router = APIRouter(prefix='/auth', tags=['Auth'])
+templates = Jinja2Templates(directory='app/templates')
+
+
+@router.get("/", response_class=HTMLResponse, summary="РЎС‚СЂР°РЅРёС†Р° Р°РІС‚РѕСЂРёР·Р°С†РёРё")
+async def get_categories(request: Request):
+    return templates.TemplateResponse("auth.html", {"request": request})
 
 
 @router.post("/register/")
@@ -16,7 +24,7 @@ async def register_user(user_data: SUserRegister) -> dict:
         raise UserAlreadyExistsException
 
     if user_data.password != user_data.password_check:
-        raise PasswordMismatchException("Пароли не совпадают")
+        raise PasswordMismatchException("РџР°СЂРѕР»Рё РЅРµ СЃРѕРІРїР°РґР°СЋС‚")
     hashed_password = get_password_hash(user_data.password)
     await UsersCORE.add(
         name=user_data.name,
@@ -24,7 +32,7 @@ async def register_user(user_data: SUserRegister) -> dict:
         hashed_password=hashed_password
     )
 
-    return {'message': 'Вы успешно зарегистрированы!'}
+    return {'message': 'Р’С‹ СѓСЃРїРµС€РЅРѕ Р·Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°РЅС‹!'}
 
 
 @router.post("/login/")
@@ -34,10 +42,17 @@ async def auth_user(response: Response, user_data: SUserAuth):
         raise IncorrectEmailOrPasswordException
     access_token = create_access_token({"sub": str(check.id)})
     response.set_cookie(key="users_access_token", value=access_token, httponly=True)
-    return {'ok': True, 'access_token': access_token, 'refresh_token': None, 'message': 'Авторизация успешна!'}
+    return {'ok': True, 'access_token': access_token, 'refresh_token': None, 'message': 'РђРІС‚РѕСЂРёР·Р°С†РёСЏ СѓСЃРїРµС€РЅР°!'}
 
 
 @router.post("/logout/")
 async def logout_user(response: Response):
     response.delete_cookie(key="users_access_token")
-    return {'message': 'Пользователь успешно вышел из системы'}
+    return {'message': 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СѓСЃРїРµС€РЅРѕ РІС‹С€РµР» РёР· СЃРёСЃС‚РµРјС‹'}
+
+
+@router.get("/users", response_model=List[SUserRead])
+async def get_users():
+    users_all = await UsersCORE.find_all()
+    # РСЃРїРѕР»СЊР·СѓРµРј РіРµРЅРµСЂР°С‚РѕСЂРЅРѕРµ РІС‹СЂР°Р¶РµРЅРёРµ РґР»СЏ СЃРѕР·РґР°РЅРёСЏ СЃРїРёСЃРєР°
+    return [{'id': user.id, 'name': user.name} for user in users_all]

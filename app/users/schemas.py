@@ -2,12 +2,17 @@ from pydantic import BaseModel, EmailStr, Field
 
 
 class SUserRegister(BaseModel):
-    email: EmailStr = Field(..., description="Электронная почта")
-    password: str = Field(..., min_length=5, max_length=50, description="Пароль, от 5 до 50 знаков")
-    password_check: str = Field(..., min_length=5, max_length=50, description="Пароль, от 5 до 50 знаков")
-    name: str = Field(..., min_length=3, max_length=50, description="Имя, от 3 до 50 символов")
+    email: EmailStr = Field(..., description="Р­Р»РµРєС‚СЂРѕРЅРЅР°СЏ РїРѕС‡С‚Р°")
+    password: str = Field(..., min_length=5, max_length=50, description="РџР°СЂРѕР»СЊ, РѕС‚ 5 РґРѕ 50 Р·РЅР°РєРѕРІ")
+    password_check: str = Field(..., min_length=5, max_length=50, description="РџР°СЂРѕР»СЊ, РѕС‚ 5 РґРѕ 50 Р·РЅР°РєРѕРІ")
+    name: str = Field(..., min_length=3, max_length=50, description="РРјСЏ, РѕС‚ 3 РґРѕ 50 СЃРёРјРІРѕР»РѕРІ")
 
 
 class SUserAuth(BaseModel):
-    email: EmailStr = Field(..., description="Электронная почта")
-    password: str = Field(..., min_length=5, max_length=50, description="Пароль, от 5 до 50 знаков")
+    email: EmailStr = Field(..., description="Р­Р»РµРєС‚СЂРѕРЅРЅР°СЏ РїРѕС‡С‚Р°")
+    password: str = Field(..., min_length=5, max_length=50, description="РџР°СЂРѕР»СЊ, РѕС‚ 5 РґРѕ 50 Р·РЅР°РєРѕРІ")
+
+
+class SUserRead(BaseModel):
+    id: int = Field(..., description="РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ")
+    name: str = Field(..., min_length=3, max_length=50, description="РРјСЏ, РѕС‚ 3 РґРѕ 50 СЃРёРјРІРѕР»РѕРІ")
