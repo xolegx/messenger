@@ -40,6 +40,8 @@ async function selectUser(userId, userName, event) {
     await loadMessages(userId);
     connectWebSocket();
     startMessagePolling(userId);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
 }
 
 // Загрузка сообщений
@@ -168,7 +170,7 @@ async function fetchUsers() {
 
 
 document.addEventListener('DOMContentLoaded', fetchUsers);
-setInterval(fetchUsers, 10000); // Обновление каждые 10 секунд
+//setInterval(fetchUsers, 10000); // Обновление каждые 10 секунд
 
 // Обработчики для кнопки отправки и ввода сообщения
 document.getElementById('sendButton').onclick = sendMessage;
@@ -178,3 +180,4 @@ document.getElementById('messageInput').onkeypress = async (e) => {
         await sendMessage();
     }
 };
+
