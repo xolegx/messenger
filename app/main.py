@@ -38,3 +38,5 @@ async def token_expired_exception_handler(request: Request, exc: HTTPException):
 async def token_no_found_exception_handler(request: Request, exc: HTTPException):
     # Возвращаем редирект на страницу /auth
     return RedirectResponse(url="/auth")
+
+

@@ -24,7 +24,7 @@ async function logout() {
 // Функция выбора пользователя
 async function selectUser(userId, userName, event) {
     selectedUserId = userId;
-    document.getElementById('chatHeader').innerHTML = `<span>Чат с ${userName}</span><button class="logout-button" id="logoutButton">Выход</button>`;
+    document.getElementById('chatHeader').innerHTML = `<span>Чат с ${userName}</span><button class="logout-button" id="logoutButton">&#128682</button>`;
     document.getElementById('messageInput').disabled = false;
     document.getElementById('sendButton').disabled = false;
 
@@ -172,12 +172,51 @@ async function fetchUsers() {
 document.addEventListener('DOMContentLoaded', fetchUsers);
 //setInterval(fetchUsers, 10000); // Обновление каждые 10 секунд
 
-// Обработчики для кнопки отправки и ввода сообщения
+
+
+const emojiPicker = document.getElementById('emojiPicker');
+const togglePicker = document.getElementById('togglePicker');
+const emojiInput = document.getElementById('messageInput');
+
+// Обработчик для клика по кнопке
+togglePicker.addEventListener('click', () => {
+    emojiPicker.style.display = emojiPicker.style.display === 'block' ? 'none' : 'block';
+});
+
+// Обработчики для наведения и снятия наведения
+togglePicker.addEventListener('mouseenter', () => {
+    emojiPicker.style.display = 'block';
+});
+
+// Обработчик для снятия наведения с панели
+emojiPicker.addEventListener('mouseleave', () => {
+    emojiPicker.style.display = 'none';
+})
+
+// Обработчик для клика по смайлам
+document.querySelectorAll('.emoji').forEach(emoji => {
+    emoji.addEventListener('click', (event) => {
+        emojiInput.value += event.target.textContent;
+        emojiPicker.style.display = 'none';
+    });
+});
+
+// Закрытие выбора эмодзи при клике вне его
+document.addEventListener('click', (event) => {
+    if (!emojiPicker.contains(event.target) && !togglePicker.contains(event.target)) {
+        emojiPicker.style.display = 'none';
+    }
+});
+
+// Обработчик для кнопки отправки
 document.getElementById('sendButton').onclick = sendMessage;
 
+// Обработчик для ввода сообщения с клавиатуры
 document.getElementById('messageInput').onkeypress = async (e) => {
     if (e.key === 'Enter') {
         await sendMessage();
     }
 };
+
+
 

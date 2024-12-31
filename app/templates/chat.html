@@ -6,12 +6,6 @@
     <title>Мини-чат</title>
     <link rel="stylesheet" type="text/css" href="/static/styles/chat.css">
 
-   <!-- Подключаем локальные стили EmojiOneArea -->
-   <link rel="stylesheet" href="/static/styles/emojionearea.min.css">
-
-
-
-
 </head>
 <body>
 <div class="chat-container">
@@ -32,14 +26,18 @@
     <div class="chat-area">
         <div class="chat-header" id="chatHeader">
             <span>Мини-чат</span>
-            <button class="logout-button" id="logoutButton" onclick="logout()">Выход</button>
+            <button class="logout-button" id="logoutButton" onclick="logout()">&#128682</button>
         </div>
         <div class="messages" id="messages">
             <div class="welcome-message">Выберите чат для общения</div>
         </div>
         <div class="input-area">
             <input type="text" id="messageInput" placeholder="Введите сообщение..." disabled>
-            <button id="sendButton" disabled>Отправить</button>
+            <button class="chatButton" id="togglePicker" >&#9786</button>
+            <div id="emojiPicker">
+                {% include 'emoji.html' %}
+            </div>
+            <button class="chatButton" id="sendButton" disabled>&#9993</button>
         </div>
     </div>
 </div>
@@ -51,8 +49,6 @@
 
 <script src="/static/js/chat.js"></script>
 <script src="/static/js/jquery-3.6.0.min.js"></script>
-<script src="/static/js/jquery.textcomplete.js"></script>
-<script src="/static/js/emojionearea.min.js"></script>
-<script src="/static/js/emojione.min.js"></script>
+
 </body>
 </html>

@@ -39,6 +39,8 @@ body, html {
     flex-direction: column;
 }
 
+
+
 .chat-header {
     padding: 15px;
     background-color: #007bff;
@@ -50,10 +52,11 @@ body, html {
 }
 
 .logout-button {
-    background-color: #dc3545;
+    background-color: rgba(200,0,0,0.5);
+    font-size: 25px;
     color: white;
     border: none;
-    padding: 8px 15px;
+    padding: 0px 0px;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s;
@@ -61,6 +64,18 @@ body, html {
 
 .logout-button:hover {
     background-color: #c82333;
+}
+
+.chatButton {
+    background-color: white;
+    font-size: 25px;
+    margin-left: 5px;
+    border: none;
+    cursor: pointer;
+}
+
+.chatButton:active {
+    border: 1px solid #ddd;
 }
 
 .messages {
@@ -76,7 +91,6 @@ body, html {
     margin-bottom: 10px;
     padding: 10px;
     border-radius: 5px;
-    max-width: 70%;
 }
 
 .message.sent {
@@ -103,20 +117,6 @@ body, html {
     margin-right: 10px;
 }
 
-.input-area button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.input-area button:hover {
-    background-color: #0056b3;
-}
-
 .welcome-message {
     font-size: 24px;
     color: #007bff;
@@ -127,11 +127,13 @@ body, html {
 .my-message {
     background-color: #e0ffe0; /* Зеленый фон для ваших сообщений */
     text-align: right; /* Выравнивание текста по правому краю */
+    margin-left: 20%
 }
 
 .other-message {
     background-color: #f0f0f0; /* Серый фон для сообщений других пользователей */
     text-align: left; /* Выравнивание текста по левому краю */
+    margin-right: 20%
 }
 
 @keyframes bounce {
@@ -144,4 +146,24 @@ body, html {
     60% {
         transform: translateY(-15px);
     }
+}
+
+#emojiPicker {
+    display: none;
+    weight: 200px;
+    height: 100px;
+    resize: none;
+    overflow-y: auto;
+    position: absolute;
+    bottom: 55px; /* Позиционирование панели выше кнопки */
+    right: 11%;
+    background-color: #f1f1f1;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+#emojiPicker .emoji {
+    cursor: pointer;
+    font-size: 17px;
+    margin: 1px;
 }

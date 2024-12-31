@@ -30,7 +30,7 @@ const sendRequest = async (url, data) => {
             alert(result.message || 'Операция выполнена успешно!');
             return result;
         } else {
-            alert(result.message || 'Ошибка выполнения запроса!');
+            alert(result.message || 'Почта или пароль не совпадают!');
             return null;
         }
     } catch (error) {
