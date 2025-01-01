@@ -28,3 +28,10 @@ class MessagesCORE(BaseCORE):
             ).order_by(cls.model.id)
             result = await session.execute(query)
             return result.scalars().all()
+
+
+def update_user_status(user_id: int, status: str):
+    # Здесь обнови статус пользователя в базе данных или памяти
+    print(f"User {user_id} is now {status}")
+    # Если используешь базу данных, пропиши соответствующий запрос
+
