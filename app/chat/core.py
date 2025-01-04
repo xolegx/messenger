@@ -1,7 +1,12 @@
 from sqlalchemy import select, and_, or_
+from sqlalchemy.exc import NoResultFound
 from app.core.base import BaseCORE
 from app.chat.models import Message
 from app.database import async_session_maker
+from app.users.models import User
+
+import logging
+logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class MessagesCORE(BaseCORE):
@@ -30,8 +35,24 @@ class MessagesCORE(BaseCORE):
             return result.scalars().all()
 
 
-def update_user_status(user_id: int, status: str):
-    # Здесь обнови статус пользователя в базе данных или памяти
-    print(f"User {user_id} is now {status}")
-    # Если используешь базу данных, пропиши соответствующий запрос
+async def update_user_status(user_id: int, status: str):
+    async with async_session_maker() as session:
+        try:
+            # Находим пользователя по user_id
+            user = await session.query(User).filter(User.id == user_id)
 
+            # Обновляем статус
+            user.status = status
+
+            # Сохраняем изменения в базе данных
+            session.commit()
+            logging.info(f"Статус пользователя с ID {user_id} обновлен на '{status}'.")
+
+        except NoResultFound:
+            logging.warning(f"Пользователь с ID {user_id} не найден.")
+            session.rollback()  # Откатываем изменения, если пользователь не найден
+        except Exception as e:
+            logging.error(f"Произошла ошибка: {e}")
+            session.rollback()  # Откатываем изменения при ошибке
+        finally:
+            session.close()  # Закрываем сессию

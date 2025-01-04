@@ -1,0 +1,44 @@
+<div id="friendsList">
+    <input type="text" id="searchInput" placeholder="Поиск друзей..." oninput="searchFriends()">
+    <ul id="friends">
+        <!-- Список друзей будет загружаться здесь -->
+    </ul>
+</div>
+
+<script>
+async function loadFriends() {
+    try {
+        const response = await fetch('/friends/');
+        const friends = await response.json();
+        const friendsContainer = document.getElementById('friends');
+
+        friendsContainer.innerHTML = friends.map(friend =>
+            `<li class="friend-item" onclick="selectUser(${friend.id}, '${friend.username}')">${friend.username}</li>`
+        ).join('');
+    } catch (error) {
+        console.error('Ошибка загрузки списка друзей:', error);
+    }
+}
+
+async function searchFriends() {
+    const query = document.getElementById('searchInput').value.trim();
+    if (query) {
+        try {
+            const response = await fetch(`/friends/search?query=${encodeURIComponent(query)}`);
+            const searchResults = await response.json();
+            const friendsContainer = document.getElementById('friends');
+
+            friendsContainer.innerHTML = searchResults.map(friend =>
+                `<li class="friend-item" onclick="selectUser(${friend.id}, '${friend.username}')">${friend.username}</li>`
+            ).join('');
+        } catch (error) {
+            console.error('Ошибка поиска пользователей:', error);
+        }
+    } else {
+        loadFriends();
+    }
+}
+
+// Загрузить список друзей при загрузке страницы
+loadFriends();
+</script>

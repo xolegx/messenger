@@ -65,7 +65,7 @@ function connectWebSocket() {
 
     socket = new WebSocket(`wss://${window.location.host}/chat/ws/${selectedUserId}`);
 
-    socket.onopen = () => console.log('WebSocket соединение установлено');
+    //socket.onopen = () => console.log('WebSocket соединение установлено');
 
     socket.onmessage = (event) => {
         const incomingMessage = JSON.parse(event.data);
@@ -74,7 +74,7 @@ function connectWebSocket() {
         }
     };
 
-    socket.onclose = () => console.log('WebSocket соединение закрыто');
+    //socket.onclose = () => console.log('WebSocket соединение закрыто');
 }
 
 // Отправка сообщения
