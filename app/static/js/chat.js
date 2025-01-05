@@ -63,7 +63,7 @@ async function loadMessages(userId) {
 function connectWebSocket() {
     if (socket) socket.close();
 
-    socket = new WebSocket(`wss://${window.location.host}/chat/ws/${selectedUserId}`);
+    socket = new WebSocket(`ws://${window.location.host}/chat/ws/${selectedUserId}`);
 
     //socket.onopen = () => console.log('WebSocket соединение установлено');
 
