@@ -2,11 +2,13 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from typing import List, Dict
-from app.chat.core import MessagesCORE, update_user_status
+from app.chat.core import MessagesCORE
 from app.chat.schemas import MessageRead, MessageCreate
 from app.users.core import UsersCORE
 from app.users.dependencies import get_current_user
 from app.users.models import User
+from sqlalchemy.orm import Session
+from app.database import get_db
 
 import asyncio
 import logging
@@ -14,14 +16,6 @@ logging.basicConfig(filename='approut.log', level=logging.INFO, format='%(asctim
 
 router = APIRouter(prefix='/chat', tags=['Chat'])
 templates = Jinja2Templates(directory='app/templates')
-
-
-@router.get("/", response_class=HTMLResponse, summary="Chat Page")
-async def get_chat_page(request: Request, user_data: User = Depends(get_current_user)):
-    users_all = await UsersCORE.find_all()
-    return templates.TemplateResponse("chat.html",
-                                      {"request": request, "user": user_data, 'users_all': users_all})
-
 active_connections: Dict[int, WebSocket] = {}
 
 
@@ -31,18 +25,31 @@ async def notify_user(user_id: int, message: dict):
         await websocket.send_json(message)
 
 
+async def update_user_status(user_id: int, status: str, db: Session):
+    user = db.query(User).filter(User.id == user_id).first().one_or_none()
+    if user:
+        user.status = status
+        db.commit()
+
+
+@router.get("/", response_class=HTMLResponse, summary="Chat Page")
+async def get_chat_page(request: Request, user_data: User = Depends(get_current_user)):
+    users_all = await UsersCORE.find_all()
+    return templates.TemplateResponse("chat.html",
+                                      {"request": request, "user": user_data, 'users_all': users_all})
+
+
 @router.websocket("/ws/{user_id}")
-async def websocket_endpoint(websocket: WebSocket, user_id: int):
+async def websocket_endpoint(websocket: WebSocket, user_id: int, db: Session = Depends(get_db)):
     await websocket.accept()
-    logging.info(f"websocket.accept")
     active_connections[user_id] = websocket
-    await update_user_status(user_id, "online")
+    await update_user_status(user_id, "online", db)
     try:
         while True:
             await asyncio.sleep(1)
     except WebSocketDisconnect:
         active_connections.pop(user_id, None)
-        await update_user_status(user_id, "offline")
+        await update_user_status(user_id, "offline", db)
 
 
 @router.get("/messages/{user_id}", response_model=List[MessageRead])

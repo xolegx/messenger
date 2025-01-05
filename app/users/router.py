@@ -1,5 +1,5 @@
-from typing import List
-from fastapi import APIRouter, Response
+from typing import List, Annotated
+from fastapi import APIRouter, Response, Depends
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
 from app.exceptions import UserAlreadyExistsException, IncorrectEmailOrPasswordException, PasswordMismatchException
