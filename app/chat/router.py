@@ -2,15 +2,13 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from typing import List, Dict
-from app.chat.core import MessagesCORE, update_user_status
+from app.chat.core import MessagesCORE
 from app.chat.schemas import MessageRead, MessageCreate
 from app.users.core import UsersCORE
 from app.users.dependencies import get_current_user
 from app.users.models import User
 
 import asyncio
-import logging
-logging.basicConfig(filename='approut.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 router = APIRouter(prefix='/chat', tags=['Chat'])
 templates = Jinja2Templates(directory='app/templates')
@@ -34,15 +32,12 @@ async def notify_user(user_id: int, message: dict):
 @router.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: int):
     await websocket.accept()
-    logging.info(f"websocket.accept")
     active_connections[user_id] = websocket
-    await update_user_status(user_id, "online")
     try:
         while True:
             await asyncio.sleep(1)
     except WebSocketDisconnect:
         active_connections.pop(user_id, None)
-        await update_user_status(user_id, "offline")
 
 
 @router.get("/messages/{user_id}", response_model=List[MessageRead])
@@ -65,3 +60,4 @@ async def send_message(message: MessageCreate, current_user: User = Depends(get_
     await notify_user(message.recipient_id, message_data)
     await notify_user(current_user.id, message_data)
     return {'recipient_id': message.recipient_id, 'content': message.content, 'status': 'ok', 'msg': 'Message saved!'}
+
