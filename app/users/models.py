@@ -10,4 +10,3 @@ class User(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     email: Mapped[str] = mapped_column(String, nullable=False)
-    status: Mapped[str] = mapped_column(String, nullable=True)

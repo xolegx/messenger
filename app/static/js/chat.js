@@ -63,18 +63,19 @@ async function loadMessages(userId) {
 function connectWebSocket() {
     if (socket) socket.close();
 
-    socket = new WebSocket(`wss://${window.location.host}/chat/ws/${selectedUserId}`);
+    socket = new WebSocket(`ws://${window.location.host}/chat/ws/${selectedUserId}`);
 
-    //socket.onopen = () => console.log('WebSocket соединение установлено');
+    socket.onopen = () => console.log('WebSocket соединение установлено');
 
     socket.onmessage = (event) => {
         const incomingMessage = JSON.parse(event.data);
-        if (incomingMessage.recipient_id === selectedUserId) {
+        console.log({incomingMessage});
+            if (incomingMessage.recipient_id === selectedUserId) {
             addMessage(incomingMessage.content, incomingMessage.recipient_id);
         }
     };
 
-    //socket.onclose = () => console.log('WebSocket соединение закрыто');
+    socket.onclose = () => console.log('WebSocket соединение закрыто');
 }
 
 // Отправка сообщения
