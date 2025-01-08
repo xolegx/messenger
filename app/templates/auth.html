@@ -1,9 +1,7 @@
 <html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мини-чат: Вход и Регистрация</title>
-    <link rel="stylesheet" type="text/css" href="/static/styles/auth.css">
+<head><base href="/" /><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Чат</title>
+<link rel="stylesheet" type="text/css" href="/static/styles/auth.css">
 </head>
 <body>
 <div class="container">
@@ -11,22 +9,45 @@
         <div class="tab active" data-tab="login">Авторизация</div>
         <div class="tab" data-tab="register">Регистрация</div>
     </div>
-    <div class="content">
-        <form id="loginForm" class="form active">
-            <input type="email" placeholder="Email" required>
-            <input type="password" placeholder="Пароль" required>
-            <button id="loginButton" type="submit">Войти</button>
-        </form>
-        <form id="registerForm" class="form">
-            <input type="email" placeholder="Email" required>
-            <input type="text" placeholder="Имя" required>
-            <input type="password" placeholder="Пароль" required>
-            <input type="password" placeholder="Повторите пароль" required>
-            <button id="registerButton" type="submit">Зарегистрироваться</button>
-        </form>
-    </div>
-</div>
 
+    <form id="loginForm" class="form active">
+        <div class="input-group">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" required>
+            <div class="error" id="loginEmailError">Пожалуйста, введите корректный email</div>
+        </div>
+        <div class="input-group">
+            <label for="loginPassword">Пароль</label>
+            <input type="password" id="loginPassword" required>
+            <div class="error" id="loginPasswordError">Пароль должен быть не менее 6 символов</div>
+        </div>
+        <button type="submit">Войти</button>
+    </form>
+
+    <form id="registerForm" class="form">
+        <div class="input-group">
+            <label for="registerEmail">Email</label>
+            <input type="email" id="registerEmail" required>
+            <div class="error" id="registerEmailError">Пожалуйста, введите корректный email</div>
+        </div>
+        <div class="input-group">
+            <label for="registerName">Имя</label>
+            <input type="text" id="registerName" required>
+            <div class="error" id="registerNameError">Имя обязательно для заполнения</div>
+        </div>
+        <div class="input-group">
+            <label for="registerPassword">Пароль</label>
+            <input type="password" id="registerPassword" required>
+            <div class="error" id="registerPasswordError">Пароль должен быть не менее 6 символов</div>
+        </div>
+        <div class="input-group">
+            <label for="registerPasswordConfirm">Подтвердите пароль</label>
+            <input type="password" id="registerPasswordConfirm" required>
+            <div class="error" id="registerPasswordConfirmError">Пароли не совпадают</div>
+        </div>
+        <button type="submit">Зарегистрироваться</button>
+    </form>
+</div>
 <script src="/static/js/auth.js"></script>
 </body>
 </html>
