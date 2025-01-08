@@ -1,4 +1,9 @@
-<html><head><base href="https://example.com"></head> <meta charset="UTF-8">
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мини-чат</title>
 <style>
 :root {
     --primary-blue: #2b5278;
@@ -264,31 +269,49 @@ document.addEventListener('click', (e) => {
     }
 });
 const avatars = ['👨', '👩', '👶', '👧', '👦', '👵', '👴', '🧔', '👨‍🦲','👨‍🦰', '👩‍🦰', '👨‍🦱', '👩‍🦱', '👨‍🦳', '👩‍🦳', '👩‍🦲' ];
-// Демо-данные для списка друзей
-const friends = [
-    { name: 'Мария', avatar: avatars[0], lastMessage: 'Как дела?' },
-    { name: 'Александр', avatar: avatars[2], lastMessage: 'Привет!' },
-    { name: 'Дмитрий', avatar: avatars[4], lastMessage: 'Увидимся завтра' }
-];
 
 // Добавляем друзей в список
-const friendsList = document.querySelector('.friends-list');
-friends.forEach(friend => {
-    const div = document.createElement('div');
-    div.className = 'friend';
-    div.innerHTML = `
-        <span style="font-size: 30px;">${friend.avatar}</span>
-        <div>
-            <div>${friend.name}</div>
-            <small style="color: #8e8e8e;">${friend.lastMessage}</small>
-        </div>
-    `;
-    friendsList.appendChild(div);
+// Функция для загрузки данных о пользователях
+async function loadFriends() {
+    try {
+        const response = await fetch('/auth/users');
 
-    // При клике на друга открываем чат
-    div.addEventListener('click', () => {
-        document.querySelector('.chat-header h3').textContent = friend.name;
-    });
-});
+        // Проверяем успешность запроса
+        if (!response.ok) {
+            throw new Error('Ошибка сети при получении данных');
+        }
+
+        const friends = await response.json();
+
+        // Выбор элемента списка друзей
+        const friendsList = document.querySelector('.friends-list');
+
+        // Перебор массива друзей и создание HTML элементов
+        friends.forEach(friend => {
+            const div = document.createElement('div');
+            div.className = 'friend';
+            div.innerHTML = `
+                <span style="font-size: 30px;">${avatars[0/*friend.avatar*/] || "👤"}</span>
+                <div>
+                    <div>${friend.name}</div>
+                    <small style="color: #8e8e8e;">${friend.lastMessage || "Нет сообщений"}</small>
+                </div>
+            `;
+            friendsList.appendChild(div);
+
+            // При клике на друга открываем чат
+            div.addEventListener('click', () => {
+                document.querySelector('.chat-header h3').textContent = friend.name;
+            });
+        });
+
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
+}
+
+// Вызов функции для загрузки данных
+loadFriends();
+
 </script>
 </html>
