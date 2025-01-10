@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Чат</title>
+    <title>Мини-чат</title>
 <style>
 :root {
     --primary-blue: #2b5278;
@@ -89,7 +89,6 @@ body {
 .friends-list {
     flex-grow: 1;
     overflow-y: auto;
-    font-size: 20px;
 }
 
 .friend {
@@ -123,44 +122,9 @@ body {
 }
 
 .messages {
-    flex: 1;
+    flex-grow: 1;
     overflow-y: auto;
-    padding: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    border-right: 1px solid #3c3c3c;
-    width: 100vh;
-}
-
-.message {
-    margin-bottom: 10px;
-    padding: 10px;
-    border-radius: 20px;
-
-}
-
-.message.sent {
-    background-color: #dcf8c6;
-    align-self: flex-end;
-    margin-left: auto;
-}
-
-.message.received {
-    background-color: #f2f2f2;
-}
-
-.my-message {
-    background-color: rgba(232,255,237,0.5); /* Зеленый фон для ваших сообщений */
-    text-align: right; /* Выравнивание текста по правому краю */
-    margin-left: 20%;
-}
-
-.other-message {
-    background-color: rgba(255,255,255,0.2); /* Серый фон для сообщений других пользователей */
-    text-align: left; /* Выравнивание текста по левому краю */
-    margin-right: 20%;
+    padding: 20px;
 }
 
 .message-input {
@@ -168,17 +132,15 @@ body {
     background-color: var(--secondary-blue);
     display: flex;
     align-items: center;
-    border-right: 1px solid #3c3c3c;
-    width: 100vh;
 }
 
 .message-input input {
     flex-grow: 1;
     padding: 10px;
     border: none;
-    font-size: 16px;
     border-radius: 20px;
     background-color: lightgrey;
+    margin-right: 10px;
 }
 
 .emoji-btn {
@@ -190,24 +152,27 @@ body {
     padding: 5px;
 }
 
-#emojiPicker {
+.emoji-picker {
+    position: absolute;
+    bottom: 70px;
+    right: 70px;
+    background-color: var(--secondary-blue);
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     display: none;
-    width: 280px;
-    height: 150px;
-    resize: none;
-    overflow-y: auto;
-    position: fixed;
-    bottom: 60px; /* Позиционирование панели выше кнопки */
-    background-color: grey;
-    padding: 10px;
-    z-index: 1000;
-    margin-left: 60vh;
 }
 
-#emojiPicker .emoji {
+.emoji-picker.active {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    padding: 10px;
+    gap: 5px;
+}
+
+.emoji-picker span {
     cursor: pointer;
-    font-size: 18px;
-    margin: 1px;
+    padding: 5px;
+    text-align: center;
 }
 
 .send-btn {
@@ -230,17 +195,18 @@ body {
     <div class="settings">
         <button class="settings-btn">☰</button>
         <div class="settings-menu">
-            <button class="set-btn">🖥 Профиль</button>
-            <button class="set-btn">👫 Друзья</button>
-            <button class="set-btn">👨‍👨‍👦 Группы</button>
-            <button class="set-btn">💾 Файлы</button>
-            <button class="set-btn">🚪 Выйти</button>
+            <button class="set-btn">Профиль</button>
+            <button class="set-btn">Друзья</button>
+            <button class="set-btn">Группы</button>
+            <button class="set-btn">Файлы</button>
         </div>
     </div>
     <div class="friends-list" id="friends-list">
+ <!-- Добавляем фиксированный элемент "Избранное" -->
         <div class="friend" data-user-id="{{ user.id }}">
-            Мои записи
+            Избранное
         </div>
+        <!-- Выводим остальных пользователей, исключая текущего пользователя -->
         {% for chat in users_all %}
             {% if chat.id != user.id %}
                 <div class="friend" data-user-id="{{ chat.id }}">
@@ -259,20 +225,15 @@ body {
         <!-- Сообщения будут добавляться динамически -->
     </div>
     <div class="message-input">
-            <input type="text" id="messageInput" maxlength="300" placeholder="Введите сообщение..." disabled>
-            <button class="emoji-btn">😊</button>
-            <button class="send-btn" id="send-btn">Отправить</button>
-            <div class="emoji-picker" id="emojiPicker">
-            <!-- Эмодзи будут добавлены динамически -->
-            </div>
-    </div>
+            <input type="text" id="messageInput" placeholder="Введите сообщение..." disabled>
+        <button class="send-btn" id="send-btn">Отправить</button>
+        </div>
 </div>
 
 <script>
 const currentUserId = parseInt("{{ user.id }}", 10);
 let selectedUserId = null;
 let socket = null;
-let previousMessages = 0;
 let messagePollingInterval = null;
 const settingsBtn = document.querySelector('.settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
@@ -287,43 +248,34 @@ document.addEventListener('click', (e) => {
 
 // Функция выбора пользователя
 async function selectUser(userId, userName, event) {
-
     selectedUserId = userId;
-    const NameuserName = userName.trim();
-    const Nameuser = NameuserName.split(' ');
-    const Name = Nameuser.slice(1, -2).join(' ');
-    document.getElementById('chat-header').innerHTML = `<span>${Name}</span>`;
+    document.getElementById('chat-header').innerHTML = `<span>${userName}</span>`;
     document.getElementById('messageInput').disabled = false;
     document.getElementById('send-btn').disabled = false;
-    
 
-    
-    if (!event.target.classList.contains('active')){ document.querySelectorAll('.friend').forEach(item => item.classList.remove('active'));
-        event.target.classList.add('active');
-        const messagesContainer = document.getElementById('messages');
-        messagesContainer.innerHTML = '';
-        messagesContainer.style.display = 'block';
-    
-        await loadMessages(userId);
-        connectWebSocket();
-        startMessagePolling(userId);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;}}
-    
+    document.querySelectorAll('.friend').forEach(item => item.classList.remove('active'));
+    event.target.classList.add('active');
+
+    const messagesContainer = document.getElementById('messages');
+    messagesContainer.innerHTML = '';
+    messagesContainer.style.display = 'block';
+
+    await loadMessages(userId);
+    connectWebSocket();
+    startMessagePolling(userId);
+}
+
 
 // Загрузка сообщений
 async function loadMessages(userId) {
-
     try {
         const response = await fetch(`/chat/messages/${userId}`);
         const messages = await response.json();
-        if (messages.length !== previousMessages.length) {
-            previousMessages = messages;
-            const messagesContainer = document.getElementById('messages');
+        //console.log('ok')
+        const messagesContainer = document.getElementById('messages');
         messagesContainer.innerHTML = messages.map(message =>
             createMessageElement(message.content, message.recipient_id)
         ).join('');
-        }
-        
     } catch (error) {
         console.error('Ошибка загрузки сообщений:', error);
     }
@@ -402,7 +354,6 @@ function addUserClickListeners() {
 
 // Первоначальная настройка событий нажатия на пользователей
 addUserClickListeners();
-const avatars = ['👨', '👩', '👶', '👧', '👦', '👵', '👴', '🧔', '👨‍🦲','👨‍🦰', '👩‍🦰', '👨‍🦱', '👩‍🦱', '👨‍🦳', '👩‍🦳', '👩‍🦲' ];
 
 // Обновление списка пользователей
 async function fetchUsers() {
@@ -410,21 +361,17 @@ async function fetchUsers() {
         const response = await fetch('/auth/users');
         const users = await response.json();
         const userList = document.getElementById('friends-list');
+
+        // Очищаем текущий список пользователей
         userList.innerHTML = '';
 
         // Создаем элемент "Избранное" для текущего пользователя
         const favoriteElement = document.createElement('div');
         favoriteElement.classList.add('friend');
         favoriteElement.setAttribute('data-user-id', currentUserId);
+        favoriteElement.textContent = 'Избранное';
 
-        // Добавляем "Избранное"
-        favoriteElement.innerHTML = `
-            <span style="font-size: 30px;">📝</span>
-            <div>
-                <div>Мои записи</div>
-            </div>
-        `;
-
+        // Добавляем "Избранное" в начало списка
         userList.appendChild(favoriteElement);
 
         // Генерация списка остальных пользователей
@@ -433,16 +380,7 @@ async function fetchUsers() {
                 const userElement = document.createElement('div');
                 userElement.classList.add('friend');
                 userElement.setAttribute('data-user-id', user.id);
-
-                // Устанавливаем контент с учетом аватара, имени и последнего сообщения
-                userElement.innerHTML = `
-                    <span style="font-size: 30px;">${user.avatar || "👤"}</span>
-                    <div>
-                        <div>${user.name}</div>
-                        <small style="color: #8e8e8e;">${user.lastMessage || "Нет сообщений"}</small>
-                    </div>
-                `;
-
+                userElement.textContent = user.name;
                 userList.appendChild(userElement);
             }
         });
@@ -455,57 +393,8 @@ async function fetchUsers() {
 }
 
 
-// Эмодзи пикер
-const emojiBtn = document.querySelector('.emoji-btn');
-const emojiPicker = document.getElementById('emojiPicker');
-const messageInput = document.querySelector('.message-input input');
-
-// Список эмодзи
-const emojis = [ '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '💪','🦵','🦶','👂','👃','🤏','👈','👉','☝','👆','👇','✌','🤞','🖖','🤘','🤙','🖐','✋','👌','👍','👎','✊','👊','🤛','🤜','🤚','🤟','✍','🙏','🤝','👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '👩', '🧔', '👵', '👴', '👲', '👳‍♀', '👳‍♂', '🧕', '👮‍♀', '👮‍♂', '👷‍♀', '👷‍♂', '💂‍♀', '💂‍♂', '🕵️‍♀', '🕵️‍♂', '👩‍⚕', '👨‍⚕', '👩‍🌾', '👨‍🌾', '👩‍🍳', '👨‍🍳', '👩‍🎓', '👨‍🎓', '👩‍🎤', '👨‍🎤', '👩‍🏫', '👨‍🏫', '👩‍🏭', '👨‍🏭', '👩‍💻', '👨‍💻', '👩‍💼', '👨‍💼', '👩‍🔧', '👨‍🔧', '👩‍🔬', '👨‍🔬', '👩‍🎨', '👨‍🎨', '👩‍🚒', '👨‍🚒', '👩‍✈', '👨‍✈', '👩‍🚀', '👨‍🚀', '👩‍⚖', '👨‍⚖', '🤶', '🎅', '🧙‍♀', '🧙‍♂', '🧝‍♀', '🧝‍♂', '🧛‍♀', '🧛‍♂', '🧟‍♀', '🧟‍♂', '🧞‍♀', '🧞‍♂', '🧜‍♀', '🧜‍♂', '🧚‍♀', '🧚‍♂', '👼', '🤰', '🤱', '🙇‍♀', '🙇‍♂', '💁‍♀', '💁‍♂', '🙅‍♀', '🙅‍♂', '🙆‍♀', '🙆‍♂', '🙋‍♀', '🙋‍♂', '🧏‍♀', '🧏‍♂', '🤦‍♀', '🤦‍♂', '🤷‍♀', '🤷‍♂', '🙎‍♀', '🙎‍♂', '🙍‍♀', '🙍‍♂', '💇‍♀', '💇‍♂', '💆‍♀', '💆‍♂', '🧖‍♀', '🧖‍♂', '💅', '🤳', '💃', '🕺', '👯‍♀', '👯‍♂', '🕴️', '👩‍🦽', '👨‍🦽', '👩‍🦼', '👨‍🦼', '🧗‍♀', '🧗‍♂', '🤺', '🏇','💾','📖','🚪'];
-
-// Добавляем эмодзи в пикер
-emojis.forEach(emoji => {
-    const span = document.createElement('span');
-    span.textContent = emoji;
-    span.className = 'emoji';
-    span.addEventListener('click', () => {
-        messageInput.value += emoji;
-    });
-    emojiPicker.appendChild(span);
-});
-
-
-
-
-// Обработчик для клика по кнопке
-emojiBtn.addEventListener('click', () => {
-    emojiPicker.style.display = emojiPicker.style.display === 'block' ? 'none' : 'block';
-});
-
-// Обработчики для наведения и снятия наведения
-emojiBtn.addEventListener('mouseenter', () => {
-    emojiPicker.style.display = 'block';
-});
-
-// Обработчик для снятия наведения с панели
-emojiBtn.addEventListener('mouseleave', () => {
-    setTimeout(() => {
-        if (!emojiPicker.matches(':hover')) {
-            emojiPicker.style.display = 'none';}
-},100);
-});
-emojiPicker.addEventListener('mouseleave', () => {emojiPicker.style.display = 'none';});
-
-// Закрытие эмодзи пикера при клике вне его
-document.addEventListener('click', (e) => {
-    if (!emojiBtn.contains(e.target) && !emojiPicker.contains(e.target)) {
-        emojiPicker.classList.remove('active');
-    }
-});
-
-
 document.addEventListener('DOMContentLoaded', fetchUsers);
-//setInterval(fetchUsers, 10000); // Обновление каждые 10 секунд
+setInterval(fetchUsers, 10000); // Обновление каждые 10 секунд
 
 // Обработчики для кнопки отправки и ввода сообщения
 document.getElementById('send-btn').onclick = sendMessage;
