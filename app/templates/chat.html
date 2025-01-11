@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Чат</title>
+    <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
+
 <style>
 :root {
     --primary-blue: #2b5278;
     --secondary-blue: #17212b;
     --text-color: #ffffff;
     --hover-color: #182533;
+    --online-color: #4CAF50;
 }
 
 * {
@@ -62,6 +65,7 @@ body {
     background-color: var(--secondary-blue);
     border-radius: 5px;
     width: 280px;
+    z-index: 1000;
 }
 
 .settings-menu.active {
@@ -97,6 +101,7 @@ body {
     display: flex;
     align-items: center;
     cursor: pointer;
+    position: relative;
 }
 
 .friend:hover {
@@ -132,6 +137,10 @@ body {
     font-size: 16px;
     border-right: 1px solid #3c3c3c;
     width: 100vh;
+    background-image: url('/static/img/chatwall.png');
+    background-size: cover; 
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .message {
@@ -181,7 +190,7 @@ body {
     background-color: lightgrey;
 }
 
-.emoji-btn {
+.emoji-btn, .file-btn{
     background: none;
     border: none;
     color: var(--text-color);
@@ -210,7 +219,7 @@ body {
     margin: 1px;
 }
 
-.send-btn {
+.send-btn  {
     background-color: var(--primary-blue);
     border: none;
     color: var(--text-color);
@@ -224,18 +233,45 @@ body {
     background-color: #366290;
 }
 
+.mail {
+    position: absolute;
+    right: 0;
+    transform: translateX(-30%);
+}
+
+.file-input {
+    display: none;
+}
+
+.file-preview {
+    max-width: 200px;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: var(--hover-color);
+    border-radius: 4px;
+    word-break: break-all;
+}
+
+.online-status {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--online-color);
+    margin-left: 10px;
+}
+
 </style>
 
 <div class="sidebar">
     <div class="settings">
         <button class="settings-btn">☰</button>
         <div class="settings-menu">
-            <button class="set-btn">🖥 Профиль</button>
-            <button class="set-btn">👫 Друзья</button>
-            <button class="set-btn">👨‍👨‍👦 Группы</button>
-            <button class="set-btn">💾 Файлы</button>
-            <button class="set-btn">🚪 Выйти</button>
-        </div>
+            <button class="set-btn" data-url="/auth/profile">💷 Профиль</button>
+            <button class="set-btn" data-url="/auth/friend">👫 Друзья</button>
+            <button class="set-btn" data-url="/auth/groups">👨‍👨‍👦 Группы</button>
+            <button class="set-btn" data-url="/auth/file">💾 Файлы</button>
+            <button class="set-btn"style="background: rgba(100,0,0,0.2)">🚪 Выйти</button>
+                    </div>
     </div>
     <div class="friends-list" id="friends-list">
         <div class="friend" data-user-id="{{ user.id }}">
@@ -260,6 +296,8 @@ body {
     </div>
     <div class="message-input">
             <input type="text" id="messageInput" maxlength="300" placeholder="Введите сообщение..." disabled>
+            <button class="file-btn" style="margin-left: 5px">📎</button>
+            <input type="file" class="file-input" multiple>
             <button class="emoji-btn">😊</button>
             <button class="send-btn" id="send-btn">Отправить</button>
             <div class="emoji-picker" id="emojiPicker">
@@ -274,6 +312,9 @@ let selectedUserId = null;
 let socket = null;
 let previousMessages = 0;
 let messagePollingInterval = null;
+let status = null;
+const fileBtn = document.querySelector('.file-btn');
+const fileInput = document.querySelector('.file-input');
 const settingsBtn = document.querySelector('.settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
 settingsBtn.addEventListener('click', () => {
@@ -289,18 +330,18 @@ document.addEventListener('click', (e) => {
 async function selectUser(userId, userName, event) {
 
     selectedUserId = userId;
-    const NameuserName = userName.trim();
-    const Nameuser = NameuserName.split(' ');
-    const Name = Nameuser.slice(1, -2).join(' ');
-    document.getElementById('chat-header').innerHTML = `<span>${Name}</span>`;
+    const userNametrim = userName.trim();
+    const userNamesplit = userNametrim.split(' ');
+    const headerName = userNamesplit.slice(1,46).join(' ');
+    document.getElementById('chat-header').innerHTML = `<span>${headerName}</span> <br> <small style="color: #8e8e8e;">${status || "offline"}</small>` ;
     document.getElementById('messageInput').disabled = false;
     document.getElementById('send-btn').disabled = false;
-    
+    const messagesContainer = document.querySelector('.messages');
+    messagesContainer.style.backgroundImage = "url('/static/img/chatwall2.png')"; 
 
     
     if (!event.target.classList.contains('active')){ document.querySelectorAll('.friend').forEach(item => item.classList.remove('active'));
         event.target.classList.add('active');
-        const messagesContainer = document.getElementById('messages');
         messagesContainer.innerHTML = '';
         messagesContainer.style.display = 'block';
     
@@ -316,6 +357,7 @@ async function loadMessages(userId) {
     try {
         const response = await fetch(`/chat/messages/${userId}`);
         const messages = await response.json();
+        //console.log(messages.length, previousMessages.length);
         if (messages.length !== previousMessages.length) {
             previousMessages = messages;
             const messagesContainer = document.getElementById('messages');
@@ -433,16 +475,18 @@ async function fetchUsers() {
                 const userElement = document.createElement('div');
                 userElement.classList.add('friend');
                 userElement.setAttribute('data-user-id', user.id);
+                userElement.setAttribute('status', user.status);
 
                 // Устанавливаем контент с учетом аватара, имени и последнего сообщения
                 userElement.innerHTML = `
                     <span style="font-size: 30px;">${user.avatar || "👤"}</span>
                     <div>
-                        <div>${user.name}</div>
+                        <div>${user.name} <div class="online-status" style="float: right; margin-top: 5px"></div>
+                        </div> 
                         <small style="color: #8e8e8e;">${user.lastMessage || "Нет сообщений"}</small>
                     </div>
                 `;
-
+                userElement.innerHTML += `<span class="mail">💬</span>`;
                 userList.appendChild(userElement);
             }
         });
@@ -454,6 +498,23 @@ async function fetchUsers() {
     }
 }
 
+// Функция выхода из аккаунта
+async function logout() {
+    try {
+        const response = await fetch('/auth/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            window.location.href = '/auth';
+        } else {
+            console.error('Ошибка при выходе');
+        }
+    } catch (error) {
+        console.error('Ошибка при выполнении запроса:', error);
+    }
+}
 
 // Эмодзи пикер
 const emojiBtn = document.querySelector('.emoji-btn');
@@ -516,110 +577,49 @@ document.getElementById('messageInput').onkeypress = async (e) => {
     }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*// Обработчик кнопки настроек
-const settingsBtn = document.querySelector('.settings-btn');
-const settingsMenu = document.querySelector('.settings-menu');
-
-settingsBtn.addEventListener('click', () => {
-    settingsMenu.classList.toggle('active');
+fileBtn.addEventListener('click', () => {
+    fileInput.click();
 });
 
-// Закрытие меню настроек при клике вне его
-document.addEventListener('click', (e) => {
-    if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
-        settingsMenu.classList.remove('active');
-    }
-});
-
-// Эмодзи пикер
-const emojiBtn = document.querySelector('.emoji-btn');
-const emojiPicker = document.querySelector('.emoji-picker');
-const messageInput = document.querySelector('.message-input input');
-
-// Список эмодзи
-const emojis = ['😊', '😂', '🤣', '❤️', '😍', '😒', '😘', '💕', '😁', '👍', '🎉', '✨', '🌟', '💫', '💪', '🤔'];
-
-// Добавляем эмодзи в пикер
-emojis.forEach(emoji => {
-    const span = document.createElement('span');
-    span.textContent = emoji;
-    span.addEventListener('click', () => {
-        messageInput.value += emoji;
+fileInput.addEventListener('change', (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message my-message';
+        messageElement.innerHTML = `
+            <div class="file-preview">
+                📎 ${file.name} (${(file.size / 1024).toFixed(2)} KB)
+            </div>
+        `;
+        document.querySelector('.messages').appendChild(messageElement);
     });
-    emojiPicker.appendChild(span);
+    fileInput.value = '';
 });
 
-emojiBtn.addEventListener('click', () => {
-    emojiPicker.classList.toggle('active');
+
+const buttons = document.querySelectorAll('.set-btn');
+
+    // Добавляем обработчик события 'click' для каждой кнопки
+buttons.forEach(button => {
+    button.addEventListener('click', async () => {
+        const url = button.getAttribute('data-url'); // Получаем URL из атрибута data-url
+        if (button.textContent === '🚪 Выйти') {
+            if (confirm('Вы уверены, что хотите выйти?')) {
+                try {
+                    // Вызов функции logout для выполнения выхода
+                    await logout();
+                } catch (error) {
+                    console.error('Ошибка при выполнении выхода:', error);
+                }
+                alert('Вы вышли');
+                
+            }
+        }else{
+            window.location.href = url;
+        } 
+         // Переходим на указанную страницу
+    });
 });
 
-// Закрытие эмодзи пикера при клике вне его
-document.addEventListener('click', (e) => {
-    if (!emojiBtn.contains(e.target) && !emojiPicker.contains(e.target)) {
-        emojiPicker.classList.remove('active');
-    }
-});
-const avatars = ['👨', '👩', '👶', '👧', '👦', '👵', '👴', '🧔', '👨‍🦲','👨‍🦰', '👩‍🦰', '👨‍🦱', '👩‍🦱', '👨‍🦳', '👩‍🦳', '👩‍🦲' ];
-
-// Добавляем друзей в список
-// Функция для загрузки данных о пользователях
-async function loadFriends() {
-    try {
-        const response = await fetch('/auth/users');
-
-        // Проверяем успешность запроса
-        if (!response.ok) {
-            throw new Error('Ошибка сети при получении данных');
-        }
-
-        const friends = await response.json();
-
-        // Выбор элемента списка друзей
-        const friendsList = document.querySelector('.friends-list');
-
-        // Перебор массива друзей и создание HTML элементов
-        friends.forEach(friend => {
-            const div = document.createElement('div');
-            div.className = 'friend';
-            div.innerHTML = `
-                <span style="font-size: 30px;">${avatars[0] || "👤"}</span>
-                <div>
-                    <div>${friend.name}</div>
-                    <small style="color: #8e8e8e;">${friend.lastMessage || "Нет сообщений"}</small>
-                </div>
-            `;
-            friendsList.appendChild(div);
-
-            // При клике на друга открываем чат
-            div.addEventListener('click', () => {
-                document.querySelector('.chat-header h3').textContent = friend.name;
-            });
-        });
-
-    } catch (error) {
-        console.error('Ошибка:', error);
-    }
-}
-
-// Вызов функции для загрузки данных
-loadFriends();
-*/
 </script>
 </html>

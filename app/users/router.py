@@ -1,5 +1,5 @@
-from typing import List, Annotated
-from fastapi import APIRouter, Response, Depends
+from typing import List
+from fastapi import APIRouter, Response
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
 from app.exceptions import UserAlreadyExistsException, IncorrectEmailOrPasswordException, PasswordMismatchException
@@ -56,3 +56,18 @@ async def get_users():
     users_all = await UsersCORE.find_all()
     # Используем генераторное выражение для создания списка
     return [{'id': user.id, 'name': user.name} for user in users_all]
+
+
+@router.get("/profile")
+async def get_profile(request: Request):
+    return templates.TemplateResponse("profile.html", {"request": request})
+
+
+@router.get("/friends")
+async def get_profile(request: Request):
+    return templates.TemplateResponse("friends.html", {"request": request})
+
+
+@router.get("/groups")
+async def get_profile(request: Request):
+    return templates.TemplateResponse("groups.html", {"request": request})
