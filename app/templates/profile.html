@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Профиль</title>
+    <title>Мой профиль</title>
     <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
 <style>
 :root {
@@ -151,12 +151,15 @@ body {
 }
 
 .main {
-    font-size: 25px;
-    right: 0;
+    background-image: url('/static/img/12.png');
+    background-size: cover; 
+    background-color: var(--primary-blue);
+    width: 40px; 
+    height: 40px; 
+    border: none; 
+    cursor: pointer; 
     margin-left: 200px;
-    border: none;
-    cursor: pointer;
-    background-color:  var(--primary-blue);
+    float: right;
 }
 
 </style>
@@ -164,14 +167,15 @@ body {
 <div class="sidebar">
     <div class="settings">
         <button class="settings-btn">☰</button>
-        <button class="main" id="main">⬅️</button>
         <div class="settings-menu">
             <button class="set-btn" data-url="/auth/profile">💷 Профиль</button>
-            <button class="set-btn" data-url="/auth/friend">👫 Друзья</button>
+            <button class="set-btn" data-url="/auth/friends">👫 Друзья</button>
             <button class="set-btn" data-url="/auth/groups">👨‍👨‍👦 Группы</button>
-            <button class="set-btn" data-url="/auth/file">💾 Файлы</button>
+            <button class="set-btn" data-url="/auth/files">💾 Файлы</button>
             <button class="set-btn"style="background: rgba(100,0,0,0.2)">🚪 Выйти</button>
-                    </div>
+        </div>
+        <button class="main" id="main"></button>
+
     </div>
 </div>
 
@@ -209,6 +213,25 @@ body {
 <script>
 const settingsBtn = document.querySelector('.settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
+
+// Функция выхода из аккаунта
+async function logout() {
+    try {
+        const response = await fetch('/auth/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            window.location.href = '/auth';
+        } else {
+            console.error('Ошибка при выходе');
+        }
+    } catch (error) {
+        console.error('Ошибка при выполнении запроса:', error);
+    }
+}
+
 settingsBtn.addEventListener('click', () => {
     settingsMenu.classList.toggle('active');
 });

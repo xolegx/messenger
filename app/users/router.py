@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response, Depends
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
 from app.exceptions import UserAlreadyExistsException, IncorrectEmailOrPasswordException, PasswordMismatchException
@@ -7,6 +7,8 @@ from app.users.auth import get_password_hash, authenticate_user, create_access_t
 from app.users.core import UsersCORE
 from app.users.schemas import SUserRegister, SUserAuth, SUserRead
 from fastapi.templating import Jinja2Templates
+from app.users.dependencies import get_current_user
+from app.users.models import User
 
 router = APIRouter(prefix='/auth', tags=['Auth'])
 templates = Jinja2Templates(directory='app/templates')
@@ -64,10 +66,16 @@ async def get_profile(request: Request):
 
 
 @router.get("/friends")
-async def get_profile(request: Request):
-    return templates.TemplateResponse("friends.html", {"request": request})
+async def get_profile(request: Request, user_data: User = Depends(get_current_user)):
+    users_all = await UsersCORE.find_all()
+    return templates.TemplateResponse("friends.html", {"request": request, "user": user_data, 'users_all': users_all})
 
 
 @router.get("/groups")
 async def get_profile(request: Request):
     return templates.TemplateResponse("groups.html", {"request": request})
+
+
+@router.get("/files")
+async def get_profile(request: Request):
+    return templates.TemplateResponse("files.html", {"request": request})

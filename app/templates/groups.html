@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мои друзья</title>
+    <title>Мои Группы</title>
     <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
 <style>
 :root {
@@ -13,6 +13,7 @@
     --hover-color: #182533;
     --danger-color: #dc3545;
     --online-color: #4CAF50;
+    --selected-group: #3a6d99;
 }
 
 * {
@@ -29,7 +30,6 @@ body {
     display: flex;
     overflow-x: hidden;
 }
-
 .sidebar {
     width: 300px;
     background-color: var(--secondary-blue);
@@ -91,43 +91,56 @@ body {
     background-color: var(--hover-color);
 }
 
-.friends-list {
+.groups-list {
     flex-grow: 1;
     overflow-y: auto;
     padding: 10px;
 }
 
-.friend-item {
+.create-group-btn {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    background-color: var(--primary-blue);
+    border: none;
+    color: var(--text-color);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.create-group-btn:hover {
+    background-color: var(--hover-color);
+}
+
+.group-item {
     display: flex;
     align-items: center;
     padding: 10px;
     border-radius: 5px;
     margin-bottom: 5px;
     cursor: pointer;
+    transition: background-color 0.3s;
 }
 
-.friend-item:hover {
+.group-item:hover {
     background-color: var(--hover-color);
 }
 
-.friend-avatar {
+.group-item.selected {
+    background-color: var(--selected-group);
+}
+
+.group-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     background-color: var(--primary-blue);
     margin-right: 10px;
-    position: relative;
-}
-
-.online-status {
-    width: 12px;
-    height: 12px;
-    background-color: var(--online-color);
-    border-radius: 50%;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    border: 2px solid var(--secondary-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
 }
 
 .main-area {
@@ -135,57 +148,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 15px;
-}
-
-.search-bar {
-    padding: 10px;
-    background-color: var(--primary-blue);
-    border-radius: 5px;
-    margin-left: 15px;
-    max-width: 98vh;
-}
-
-.search-input {
-    width: 100%;
-    padding: 8px;
-    border: none;
-    border-radius: 3px;
-    background-color: var(--secondary-blue);
-    color: var(--text-color);
-}
-
-.user-list {
-    display: flex;
-    flex-direction: column;
-    max-width: 100vh;
-    gap: 10px;
-}
-
-.user-item {
-    display: flex;
-    align-items: center;
-    padding: 15px;
-    background-color: var(--primary-blue);
-    border-radius: 8px;
-    margin-left: 15px;
-    position: relative;
-}
-
-
-.add-friend-btn {
-    background: none;
-    border: none;
-    color: var(--text-color);
-    font-size: 24px;
-    cursor: pointer;
-    border-radius: 5px;
-    padding: 5px 10px;
-    position: absolute;
-    right: 20px;
-}
-
-.add-friend-btn:hover {
-    background-color: var(--hover-color);
 }
 
 .chat-header {
@@ -204,12 +166,66 @@ body {
     margin-left: 200px;
     float: right;
 }
+
+.friend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.friend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    background-color: var(--primary-blue);
+    border-radius: 8px;
+    margin-left: 15px;
+}
+
+.friend-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.friend-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--secondary-blue);
+    position: relative;
+}
+
+.online-status {
+    width: 12px;
+    height: 12px;
+    background-color: var(--online-color);
+    border-radius: 50%;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    border: 2px solid var(--secondary-blue);
+}
+
+.add-to-group-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.add-to-group-btn:hover {
+    background-color: var(--hover-color);
+}
 </style>
 
 <div class="sidebar">
     <div class="settings">
         <button class="settings-btn">☰</button>
-        
         <div class="settings-menu">
             <button class="set-btn" data-url="/auth/profile">💷 Профиль</button>
             <button class="set-btn" data-url="/auth/friends">👫 Друзья</button>
@@ -219,43 +235,61 @@ body {
         </div>
         <button class="main" id="main"></button>
     </div>
-    
-    <div class="friends-list">
-        <div class="friend-item">
-            <div class="friend-avatar">
-            </div>
-            <span>Друг 1</span>
+    <div class="groups-list">
+        <button class="create-group-btn">Создать группу</button>
+        <div class="group-item">
+            <div class="group-avatar">G1</div>
+            <span>Группа 1</span>
+        </div>
+        <div class="group-item">
+            <div class="group-avatar">G2</div>
+            <span>Группа 2</span>
+        </div>
+        <div class="group-item">
+            <div class="group-avatar">G3</div>
+            <span>Группа 3</span>
         </div>
     </div>
 </div>
 
 <div class="main-area">
     <div class="chat-header">
-        <h3>Поиск друзей</h3>
+        <h3>Добавить друзей в группу</h3>
     </div>
-    <div class="search-bar">
-        <input type="text" class="search-input" placeholder="Поиск пользователей...">
-    </div>
-    <div class="user-list" id="user-list">
-        {% for chat in users_all %}
-            {% if chat.id != user.id %}
-                    <div class="user-item" data-user-id="{{ user.id }}">
-                    <span style="font-size: 30px;">{{user.avatar}}</span>
-                    <div style="margin-left: 10px;"> <div>{{chat.name}}</div>
-                        
-                    </div><button class="add-friend-btn">+</button>
-                 </div>
-               
-            {% endif %}
-        {% endfor %}    
+    <div class="friend-list">
+        <div class="friend-item">
+            <div class="friend-info">
+                <div class="friend-avatar">
+                    <div class="online-status"></div>
+                </div>
+                <span>Друг 1</span>
+            </div>
+            <button class="add-to-group-btn">+</button>
+        </div>
+        <div class="friend-item">
+            <div class="friend-info">
+                <div class="friend-avatar"></div>
+                <span>Друг 2</span>
+            </div>
+            <button class="add-to-group-btn">+</button>
+        </div>
+        <div class="friend-item">
+            <div class="friend-info">
+                <div class="friend-avatar">
+                    <div class="online-status"></div>
+                </div>
+                <span>Друг 3</span>
+            </div>
+            <button class="add-to-group-btn">+</button>
+        </div>
     </div>
 </div>
 
 <script>
+const groupItems = document.querySelectorAll('.group-item');
 const settingsBtn = document.querySelector('.settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
 const buttons = document.querySelectorAll('.set-btn');
-const currentUserId = parseInt("{{ user.id }}", 10);
 
 // Функция выхода из аккаунта
 async function logout() {
@@ -272,37 +306,6 @@ async function logout() {
         }
     } catch (error) {
         console.error('Ошибка при выполнении запроса:', error);
-    }
-}
-
-async function fetchUsers() {
-    try {
-        const response = await fetch('/auth/users');
-        const users = await response.json();
-        const userList = document.getElementById('user-list');
-        userList.innerHTML = '';// Генерация списка пользователей
-        users.forEach(user => {
-            if (user.id !== currentUserId) {
-                const userElement = document.createElement('div');
-                userElement.classList.add('user-item');
-                userElement.setAttribute('data-user-id', user.id);
-                userElement.setAttribute('status', user.status);
-
-                // Устанавливаем контент с учетом аватара, имени и последнего сообщения
-                userElement.innerHTML = `
-                    <span style="font-size: 30px;">${user.avatar || "👤"}  </span>
-                    <div style="margin-left: 10px;"> <div>${user.name}</div>
-                        
-                    </div><button class="add-friend-btn">+</button>
-                `;
-                //userElement.innerHTML += `<span class="mail">💬</span>`;
-                userList.appendChild(userElement);
-            }
-        });
-
-       
-    } catch (error) {
-        console.error('Ошибка при загрузке списка пользователей:', error);
     }
 }
 
@@ -341,36 +344,40 @@ buttons.forEach(button => {
     });
 });
 
-// Add friend functionality
-const addFriendButtons = document.querySelectorAll('.add-friend-btn');
-addFriendButtons.forEach(button => {
+// Group selection
+groupItems.forEach(item => {
+    item.addEventListener('click', function() {
+        groupItems.forEach(g => g.classList.remove('selected'));
+        this.classList.add('selected');
+    });
+});
+
+// Create group functionality
+const createGroupBtn = document.querySelector('.create-group-btn');
+createGroupBtn.addEventListener('click', () => {
+    const groupName = prompt('Введите название группы:');
+    if (groupName) {
+        alert(`Группа "${groupName}" создана!`);
+    }
+});
+
+// Add to group functionality
+const addToGroupButtons = document.querySelectorAll('.add-to-group-btn');
+addToGroupButtons.forEach(button => {
     button.addEventListener('click', function() {
-        const userName = this.parentElement.querySelector('.user-info span').textContent;
-        alert(`Запрос на добавление в друзья отправлен пользователю ${userName}`);
+        const selectedGroup = document.querySelector('.group-item.selected');
+        if (!selectedGroup) {
+            alert('Пожалуйста, выберите группу слева');
+            return;
+        }
+        
+        const friendName = this.parentElement.querySelector('.friend-info span').textContent;
+        const groupName = selectedGroup.querySelector('span').textContent;
+        alert(`Пользователь ${friendName} добавлен в группу "${groupName}"`);
         this.disabled = true;
         this.textContent = '✓';
         this.style.opacity = '0.5';
     });
 });
-// Search functionality
-const searchInput = document.querySelector('.search-input');
-const userItems = document.querySelectorAll('.user-item');
-searchInput.addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    userItems.forEach(item => {
-
-        const userName = item.textContent.toLowerCase().trim();
-        if (userName.includes(searchTerm)) {
-            item.style.display = 'flex';
-        } else {
-            item.style.display = 'none';
-        }
-    });
-});
-
-
-//document.addEventListener('DOMContentLoaded', fetchUsers);
-
-
 </script>
 </html>

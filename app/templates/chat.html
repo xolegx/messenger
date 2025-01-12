@@ -136,7 +136,7 @@ body {
     justify-content: center;
     font-size: 16px;
     border-right: 1px solid #3c3c3c;
-    width: 100vh;
+    max-width: 100vh;
     background-image: url('/static/img/chatwall.png');
     background-size: cover; 
     background-position: center;
@@ -267,23 +267,14 @@ body {
         <button class="settings-btn">☰</button>
         <div class="settings-menu">
             <button class="set-btn" data-url="/auth/profile">💷 Профиль</button>
-            <button class="set-btn" data-url="/auth/friend">👫 Друзья</button>
+            <button class="set-btn" data-url="/auth/friends">👫 Друзья</button>
             <button class="set-btn" data-url="/auth/groups">👨‍👨‍👦 Группы</button>
-            <button class="set-btn" data-url="/auth/file">💾 Файлы</button>
+            <button class="set-btn" data-url="/auth/files">💾 Файлы</button>
             <button class="set-btn"style="background: rgba(100,0,0,0.2)">🚪 Выйти</button>
                     </div>
     </div>
     <div class="friends-list" id="friends-list">
-        <div class="friend" data-user-id="{{ user.id }}">
-            Мои записи
-        </div>
-        {% for chat in users_all %}
-            {% if chat.id != user.id %}
-                <div class="friend" data-user-id="{{ chat.id }}">
-                    {{ chat.name }}
-                </div>
-            {% endif %}
-        {% endfor %}
+        <!-- Друзья будут добавляться динамически -->
     </div>
 </div>
 
@@ -332,7 +323,7 @@ async function selectUser(userId, userName, event) {
     selectedUserId = userId;
     const userNametrim = userName.trim();
     const userNamesplit = userNametrim.split(' ');
-    const headerName = userNamesplit.slice(1,46).join(' ');
+    const headerName = userNamesplit.slice(1).join(' ');
     document.getElementById('chat-header').innerHTML = `<span>${headerName}</span> <br> <small style="color: #8e8e8e;">${status || "offline"}</small>` ;
     document.getElementById('messageInput').disabled = false;
     document.getElementById('send-btn').disabled = false;
@@ -443,7 +434,6 @@ function addUserClickListeners() {
 }
 
 // Первоначальная настройка событий нажатия на пользователей
-addUserClickListeners();
 const avatars = ['👨', '👩', '👶', '👧', '👦', '👵', '👴', '🧔', '👨‍🦲','👨‍🦰', '👩‍🦰', '👨‍🦱', '👩‍🦱', '👨‍🦳', '👩‍🦳', '👩‍🦲' ];
 
 // Обновление списка пользователей
@@ -481,12 +471,14 @@ async function fetchUsers() {
                 userElement.innerHTML = `
                     <span style="font-size: 30px;">${user.avatar || "👤"}</span>
                     <div>
-                        <div>${user.name} <div class="online-status" style="float: right; margin-top: 5px"></div>
+                        <div>
+                        ${user.name} 
+                        <!--div class="online-status" style="float: right; margin-top: 5px"></div>
                         </div> 
-                        <small style="color: #8e8e8e;">${user.lastMessage || "Нет сообщений"}</small>
+                        <small style="color: #8e8e8e;">${user.lastMessage || "Нет сообщений"}</small-->
                     </div>
                 `;
-                userElement.innerHTML += `<span class="mail">💬</span>`;
+                //userElement.innerHTML += `<span class="mail">💬</span>`;
                 userList.appendChild(userElement);
             }
         });

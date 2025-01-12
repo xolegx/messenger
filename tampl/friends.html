@@ -289,11 +289,11 @@ addFriendButtons.forEach(button => {
 // Search functionality
 const searchInput = document.querySelector('.search-input');
 const userItems = document.querySelectorAll('.user-item');
-
 searchInput.addEventListener('input', function() {
     const searchTerm = this.value.toLowerCase();
     userItems.forEach(item => {
         const userName = item.querySelector('.user-info span').textContent.toLowerCase();
+        console.log(userName);
         if (userName.includes(searchTerm)) {
             item.style.display = 'flex';
         } else {
