@@ -18,23 +18,6 @@ active_connections: Dict[int, WebSocket] = {}
 async def get_db():
     async with AsyncSession() as sessions:
         yield sessions
-# class ConnectionManager:
-#     def __init__(self):
-#         self.active_connections: List[WebSocket] = []
-#
-#     async def connect(self, websocket: WebSocket):
-#         await websocket.accept()
-#         self.active_connections.append(websocket)
-#
-#     def disconnect(self, websocket: WebSocket):
-#         self.active_connections.remove(websocket)
-#
-#     async def broadcast(self, message: str):
-#         for connection in self.active_connections:
-#             await connection.send_text(message)
-#
-#
-# manager = ConnectionManager()
 
 
 async def notify_user(user_id: int, message: dict):
@@ -59,15 +42,6 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
             await asyncio.sleep(1)
     except WebSocketDisconnect:
         active_connections.pop(user_id, None)
-    # await manager.connect(websocket)
-    # try:
-    #     await manager.broadcast(f"User {user_id} is online")
-    #     while True:
-    #         data = await websocket.receive_text()
-    #         # Обработка сообщений от пользователя
-    # except WebSocketDisconnect:
-    #     manager.disconnect(websocket)
-    #     await manager.broadcast(f"User {user_id} is offline")
 
 
 @router.get("/messages/{user_id}", response_model=List[MessageRead])
@@ -87,17 +61,15 @@ async def send_message(message: MessageCreate, current_user: User = Depends(get_
         'recipient_id': message.recipient_id,
         'content': message.content,
     }
-    await notify_user(message.recipient_id, message_data)
-    await notify_user(current_user.id, message_data)
-    return {'recipient_id': message.recipient_id, 'content': message.content, 'status': 'ok', 'msg': 'Message saved!'}
 
-# from sqlalchemy.future import select
-# @router.get("/w")
-# async def websock(db: AsyncSession = Depends(get_db)):
-#     async with db.begin():
-#         result = await db.execute(select(User).filter(User.id == 1))
-#         user = result.scalars().first()
-#         if user:
-#             user.is_online = "True"
-#
-#     await db.commit()
+    # Проверяем, подключен ли получатель
+    if message.recipient_id in active_connections:
+        # Уведомляем получателя через WebSocket
+        await notify_user(message.recipient_id, message_data)
+    else:
+        # Увеличиваем счетчик непрочитанных сообщений
+        recipient = await UsersCORE.get_by_id(message.recipient_id)
+        recipient.unread_messages += 1
+        await UsersCORE.update(recipient)  # Обновляем пользователя в БД
+
+    return {'recipient_id': message.recipient_id, 'content': message.content, 'status': 'ok', 'msg': 'Message saved!'}
