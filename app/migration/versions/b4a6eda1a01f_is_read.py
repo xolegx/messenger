@@ -1,8 +1,8 @@
-"""Добавить таблицу users
+"""'is_read'
 
-Revision ID: 6205ae1b2da9
+Revision ID: b4a6eda1a01f
 Revises: 
-Create Date: 2025-01-13 22:48:20.142097
+Create Date: 2025-01-14 22:02:56.003594
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '6205ae1b2da9'
+revision: str = 'b4a6eda1a01f'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -25,7 +25,9 @@ def upgrade() -> None:
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('hashed_password', sa.String(), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
-    sa.Column('unread_messages', sa.Integer(), nullable=False),
+    sa.Column('online_status', sa.Boolean(), nullable=False),
+    sa.Column('department', sa.Integer(), nullable=False),
+    sa.Column('avatar', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.PrimaryKeyConstraint('id')
@@ -44,6 +46,7 @@ def upgrade() -> None:
     sa.Column('sender_id', sa.Integer(), nullable=False),
     sa.Column('recipient_id', sa.Integer(), nullable=False),
     sa.Column('content', sa.Text(), nullable=False),
+    sa.Column('is_read', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.ForeignKeyConstraint(['recipient_id'], ['users.id'], ),

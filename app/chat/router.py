@@ -15,11 +15,6 @@ templates = Jinja2Templates(directory='app/templates')
 active_connections: Dict[int, WebSocket] = {}
 
 
-async def get_db():
-    async with AsyncSession() as sessions:
-        yield sessions
-
-
 async def notify_user(user_id: int, message: dict):
     if user_id in active_connections:
         websocket = active_connections[user_id]
@@ -54,7 +49,7 @@ async def send_message(message: MessageCreate, current_user: User = Depends(get_
     await MessagesCORE.add(
         sender_id=current_user.id,
         content=message.content,
-        recipient_id=message.recipient_id
+        recipient_id=message.recipient_id,
     )
     message_data = {
         'sender_id': current_user.id,
@@ -63,13 +58,6 @@ async def send_message(message: MessageCreate, current_user: User = Depends(get_
     }
 
     # Проверяем, подключен ли получатель
-    if message.recipient_id in active_connections:
-        # Уведомляем получателя через WebSocket
-        await notify_user(message.recipient_id, message_data)
-    else:
-        # Увеличиваем счетчик непрочитанных сообщений
-        recipient = await UsersCORE.get_by_id(message.recipient_id)
-        recipient.unread_messages += 1
-        await UsersCORE.update(recipient)  # Обновляем пользователя в БД
-
+    await notify_user(message.recipient_id, message_data)
+    await notify_user(current_user.id, message_data)
     return {'recipient_id': message.recipient_id, 'content': message.content, 'status': 'ok', 'msg': 'Message saved!'}

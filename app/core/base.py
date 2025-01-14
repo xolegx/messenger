@@ -2,6 +2,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.future import select
 from sqlalchemy import update as sqlalchemy_update, delete as sqlalchemy_delete, func
 from app.database import async_session_maker
+from app.users.models import User
 
 
 class BaseCORE:
