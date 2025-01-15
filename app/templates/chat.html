@@ -407,7 +407,7 @@ async function sendMessage() {
 // Добавление сообщения в чат
 function addMessage(text, recipient_id) {
     const messagesContainer = document.getElementById('messages');
-    messagesContainer.insertAdjacentHTML('beforeend', createMessageElement(text, recipient_id));
+    //messagesContainer.insertAdjacentHTML('beforeend', createMessageElement(text, recipient_id));
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
@@ -466,7 +466,6 @@ async function fetchUsers() {
                 userElement.classList.add('friend');
                 userElement.setAttribute('data-user-id', user.id);
                 userElement.setAttribute('status', user.status);
-
                 // Устанавливаем контент с учетом аватара, имени и последнего сообщения
                 userElement.innerHTML = `
                     <span style="font-size: 30px;">${user.avatar || "👤"}</span>
@@ -478,8 +477,11 @@ async function fetchUsers() {
                         <small style="color: #8e8e8e;">${user.lastMessage || "Нет сообщений"}</small-->
                     </div>
                 `;
-                //userElement.innerHTML += `<span class="mail">💬</span>`;
+                userElement.innerHTML += `<div class="mail" id='notification${user.id}'>💬 <span class="notification-badge" id="unread-count"</span>
+                </div>`;
+                checkUnreadMessages(currentUserId, user.id);
                 userList.appendChild(userElement);
+
             }
         });
 
@@ -507,6 +509,24 @@ async function logout() {
         console.error('Ошибка при выполнении запроса:', error);
     }
 }
+
+
+async function checkUnreadMessages(userId, userIds) {
+    const response = await fetch(`/chat/messages/unread/${userId}`);
+    const data = await response.json();
+    const unreadCount = data.unread_count;
+
+    if (unreadCount > 0) {
+        // Показать значок непрочитанного сообщения
+        console.log(userIds);
+        document.getElementById(`notification${userIds}`).style.display = "block";
+        document.getElementById("unread-count").textContent = unreadCount; // Обновить количество
+    } else {
+        // Скрыть значок
+        document.getElementById(`notification${userIds}`).style.display = "none";
+    }
+}
+
 
 // Эмодзи пикер
 const emojiBtn = document.querySelector('.emoji-btn');
@@ -612,6 +632,9 @@ buttons.forEach(button => {
          // Переходим на указанную страницу
     });
 });
+
+
+
 
 </script>
 </html>
