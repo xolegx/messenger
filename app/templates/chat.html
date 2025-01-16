@@ -38,13 +38,13 @@ body {
 }
 
 .settings {
-    padding: 15px;
     background-color: var(--primary-blue);
     height: 60px;
 }
 
 .settings-btn {
     background: none;
+    padding: 15px;
     border: none;
     color: white;
     cursor: pointer;
@@ -274,7 +274,17 @@ body {
                     </div>
     </div>
     <div class="friends-list" id="friends-list">
-        <!-- Друзья будут добавляться динамически -->
+        <!--{% for chat in users_all %}
+            {% if chat.id != user.id %}
+                <div>
+                    <span style="font-size: 30px;">👤</span>
+                    <div class="user" data-user-id="{{ chat.id }}">
+                    {{ chat.name }}
+                    </div>
+                    <div class="mail" id='notification-${user.id}' style="display: none;">💬 <span class="notification-badge" id="unread-count-${user.id}"</span>
+                </div>
+            {% endif %}
+        {% endfor %}-->
     </div>
 </div>
 
@@ -298,24 +308,6 @@ body {
 </div>
 
 <script>
-const currentUserId = parseInt("{{ user.id }}", 10);
-let selectedUserId = null;
-let socket = null;
-let previousMessages = 0;
-let messagePollingInterval = null;
-let status = null;
-const fileBtn = document.querySelector('.file-btn');
-const fileInput = document.querySelector('.file-input');
-const settingsBtn = document.querySelector('.settings-btn');
-const settingsMenu = document.querySelector('.settings-menu');
-settingsBtn.addEventListener('click', () => {
-    settingsMenu.classList.toggle('active');
-});
-document.addEventListener('click', (e) => {
-    if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
-        settingsMenu.classList.remove('active');
-    }
-});
 
 // Функция выбора пользователя
 async function selectUser(userId, userName, event) {
@@ -323,7 +315,7 @@ async function selectUser(userId, userName, event) {
     selectedUserId = userId;
     const userNametrim = userName.trim();
     const userNamesplit = userNametrim.split(' ');
-    const headerName = userNamesplit.slice(1).join(' ');
+    const headerName = userNamesplit.slice(1,46).join(' ');
     document.getElementById('chat-header').innerHTML = `<span>${headerName}</span> <br> <small style="color: #8e8e8e;">${status || "offline"}</small>` ;
     document.getElementById('messageInput').disabled = false;
     document.getElementById('send-btn').disabled = false;
@@ -331,15 +323,15 @@ async function selectUser(userId, userName, event) {
     messagesContainer.style.backgroundImage = "url('/static/img/chatwall2.png')"; 
 
     
-    if (!event.target.classList.contains('active')){ document.querySelectorAll('.friend').forEach(item => item.classList.remove('active'));
-        event.target.classList.add('active');
-        messagesContainer.innerHTML = '';
-        messagesContainer.style.display = 'block';
-    
-        await loadMessages(userId);
-        connectWebSocket();
-        startMessagePolling(userId);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;}}
+    document.querySelectorAll('.friend').forEach(item => item.classList.remove('active'));
+    event.target.classList.add('active');
+    messagesContainer.innerHTML = '';
+    messagesContainer.style.display = 'block';
+
+    await loadMessages(userId);
+    connectWebSocket();
+    startMessagePolling(userId);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;}
     
 
 // Загрузка сообщений
@@ -404,94 +396,6 @@ async function sendMessage() {
     }
 }
 
-// Добавление сообщения в чат
-function addMessage(text, recipient_id) {
-    const messagesContainer = document.getElementById('messages');
-    //messagesContainer.insertAdjacentHTML('beforeend', createMessageElement(text, recipient_id));
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-// Создание HTML элемента сообщения
-function createMessageElement(text, recipient_id) {
-    const userID = parseInt(selectedUserId, 10);
-    const messageClass = userID === recipient_id ? 'my-message' : 'other-message';
-    return `<div class="message ${messageClass}">${text}</div>`;
-}
-
-// Запуск опроса новых сообщений
-function startMessagePolling(userId) {
-    clearInterval(messagePollingInterval);
-    messagePollingInterval = setInterval(() => loadMessages(userId), 1000);
-       // console.log('ok')
-
-}
-
-// Обработка нажатий на пользователя
-function addUserClickListeners() {
-    document.querySelectorAll('.friend').forEach(item => {
-        item.onclick = event => selectUser(item.getAttribute('data-user-id'), item.textContent, event);
-    });
-}
-
-// Первоначальная настройка событий нажатия на пользователей
-const avatars = ['👨', '👩', '👶', '👧', '👦', '👵', '👴', '🧔', '👨‍🦲','👨‍🦰', '👩‍🦰', '👨‍🦱', '👩‍🦱', '👨‍🦳', '👩‍🦳', '👩‍🦲' ];
-
-// Обновление списка пользователей
-async function fetchUsers() {
-    try {
-        const response = await fetch('/auth/users');
-        const users = await response.json();
-        const userList = document.getElementById('friends-list');
-        userList.innerHTML = '';
-
-        // Создаем элемент "Избранное" для текущего пользователя
-        const favoriteElement = document.createElement('div');
-        favoriteElement.classList.add('friend');
-        favoriteElement.setAttribute('data-user-id', currentUserId);
-
-        // Добавляем "Избранное"
-        favoriteElement.innerHTML = `
-            <span style="font-size: 30px;">📝</span>
-            <div>
-                <div>Мои записи</div>
-            </div>
-        `;
-
-        userList.appendChild(favoriteElement);
-
-        // Генерация списка остальных пользователей
-        users.forEach(user => {
-            if (user.id !== currentUserId) {
-                const userElement = document.createElement('div');
-                userElement.classList.add('friend');
-                userElement.setAttribute('data-user-id', user.id);
-                userElement.setAttribute('status', user.status);
-                // Устанавливаем контент с учетом аватара, имени и последнего сообщения
-                userElement.innerHTML = `
-                    <span style="font-size: 30px;">${user.avatar || "👤"}</span>
-                    <div>
-                        <div>
-                        ${user.name} 
-                        <!--div class="online-status" style="float: right; margin-top: 5px"></div>
-                        </div> 
-                        <small style="color: #8e8e8e;">${user.lastMessage || "Нет сообщений"}</small-->
-                    </div>
-                `;
-                userElement.innerHTML += `<div class="mail" id='notification${user.id}'>💬 <span class="notification-badge" id="unread-count"</span>
-                </div>`;
-                checkUnreadMessages(currentUserId, user.id);
-                userList.appendChild(userElement);
-
-            }
-        });
-
-        // Повторно добавляем обработчики событий для каждого пользователя
-        addUserClickListeners();
-    } catch (error) {
-        console.error('Ошибка при загрузке списка пользователей:', error);
-    }
-}
-
 // Функция выхода из аккаунта
 async function logout() {
     try {
@@ -511,21 +415,140 @@ async function logout() {
 }
 
 
-async function checkUnreadMessages(userId, userIds) {
+// Добавление сообщения в чат
+function addMessage(text, recipient_id) {
+    const messagesContainer = document.getElementById('messages');
+    //messagesContainer.insertAdjacentHTML('beforeend', createMessageElement(text, recipient_id));
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Создание HTML элемента сообщения
+function createMessageElement(text, recipient_id) {
+    const userID = parseInt(selectedUserId, 10);
+    const messageClass = userID === recipient_id ? 'my-message' : 'other-message';
+    return `<div class="message ${messageClass}">${text}</div>`;
+}
+
+// Запуск опроса новых сообщений
+function startMessagePolling(userId) {
+    clearInterval(messagePollingInterval);
+    messagePollingInterval = setInterval(() => loadMessages(userId), 1000);
+}
+
+// Обработка нажатий на пользователя
+function addUserClickListeners() {
+    document.querySelectorAll('.friend').forEach(item => {
+        item.onclick = event => selectUser(item.getAttribute('data-user-id'), item.textContent, event);
+    });
+}
+
+const currentUserId = parseInt("{{ user.id }}", 10);
+let selectedUserId = null;
+let socket = null;
+let previousMessages = 0;
+let messagePollingInterval = null;
+let status = null;
+const fileBtn = document.querySelector('.file-btn');
+const fileInput = document.querySelector('.file-input');
+const settingsBtn = document.querySelector('.settings-btn');
+const settingsMenu = document.querySelector('.settings-menu');
+settingsBtn.addEventListener('click', () => {
+    settingsMenu.classList.toggle('active');
+});
+document.addEventListener('click', (e) => {
+    if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
+        settingsMenu.classList.remove('active');
+    }
+});
+
+// Первоначальная настройка событий нажатия на пользователей
+const avatars = ['👨', '👩', '👶', '👧', '👦', '👵', '👴', '🧔', '👨‍🦲','👨‍🦰', '👩‍🦰', '👨‍🦱', '👩‍🦱', '👨‍🦳', '👩‍🦳', '👩‍🦲' ];
+const friends = document.getElementById('friends-list');
+// Обновление списка пользователей
+async function fetchUsers() {
+    try {
+        const response = await fetch('/auth/users');
+        const users = await response.json();
+        const userList = document.getElementById('friends-list');
+        userList.innerHTML = '';
+        // Создаем элемент "Избранное" для текущего пользователя
+        const favoriteElement = document.createElement('div');
+        favoriteElement.classList.add('friend');
+        favoriteElement.setAttribute('data-user-id', currentUserId);
+
+        // Добавляем "Избранное"
+        favoriteElement.innerHTML = `
+            <span style="font-size: 30px;">📝</span>
+                <div>Мои записи</div>`;
+
+        userList.appendChild(favoriteElement);
+
+        // Генерация списка остальных пользователей
+        users.forEach(user => {
+            if (user.id !== currentUserId) {
+                const userElement = document.createElement('div');
+                userElement.classList.add('friend');
+                userElement.setAttribute('data-user-id', user.id);
+                userElement.setAttribute('status', user.status);
+                // Устанавливаем контент с учетом аватара, имени и последнего сообщения
+                userElement.innerHTML = `
+                    <span style="font-size: 30px;">${user.avatar || "👤"}</span>
+                        ${user.name} 
+                        <!--div class="online-status" style="float: right; margin-top: 5px"></div>
+                        <small style="color: #8e8e8e;">${user.lastMessage || "Нет сообщений"}</small-->
+                        <div class="mail" id='notification-${user.id}' style="display: none;">💬 <span class="notification-badge" id="unread-count-${user.id}"></span>
+                </div>`;
+                userList.appendChild(userElement);
+                checkUnreadMessages(user.id);
+            }
+
+        });
+        //setInterval(() => {users.forEach(user => {checkUnreadMessages(user.id);});},1000);
+        // Повторно добавляем обработчики событий для каждого пользователя
+        addUserClickListeners();
+    } catch (error) {
+        console.error('Ошибка при загрузке списка пользователей:', error);
+    }
+}
+
+// Обновление сообщений
+async function updateMess() {
+    try {
+        const response = await fetch('/auth/users');
+        const users = await response.json();
+        
+        users.forEach(user => {
+            if (user.id !== currentUserId) {
+                setInterval(() => checkUnreadMessages(user.id),5000);
+            }
+
+        });
+        //
+        // Повторно добавляем обработчики событий для каждого пользователя
+        addUserClickListeners();
+    } catch (error) {
+        console.error('Ошибка при загрузке списка пользователей:', error);
+    }
+}
+
+async function checkUnreadMessages(userId) {
     const response = await fetch(`/chat/messages/unread/${userId}`);
     const data = await response.json();
     const unreadCount = data.unread_count;
+    const notification = document.getElementById(`notification-${userId}`);
+    const unreadCountEl = document.getElementById(`unread-count-${userId}`); // Обновить количество
 
     if (unreadCount > 0) {
         // Показать значок непрочитанного сообщения
-        console.log(userIds);
-        document.getElementById(`notification${userIds}`).style.display = "block";
-        document.getElementById("unread-count").textContent = unreadCount; // Обновить количество
-    } else {
+        notification.style.display = "block";
+        unreadCountEl.textContent = unreadCount;
+            } else {
         // Скрыть значок
-        document.getElementById(`notification${userIds}`).style.display = "none";
+        notification.style.display = "none";
     }
 }
+
+const userID = parseInt(selectedUserId, 10);
 
 
 // Эмодзи пикер
@@ -548,7 +571,7 @@ emojis.forEach(emoji => {
 });
 
 
-
+//setInterval(() => {users.forEach(user => {console.log(user);});},1000);
 
 // Обработчик для клика по кнопке
 emojiBtn.addEventListener('click', () => {
@@ -578,7 +601,9 @@ document.addEventListener('click', (e) => {
 
 
 document.addEventListener('DOMContentLoaded', fetchUsers);
-//setInterval(fetchUsers, 10000); // Обновление каждые 10 секунд
+document.addEventListener('DOMContentLoaded', updateMess);
+//setInterval(fetchUsers, 1000); // Обновление каждые 10 секунд
+
 
 // Обработчики для кнопки отправки и ввода сообщения
 document.getElementById('send-btn').onclick = sendMessage;

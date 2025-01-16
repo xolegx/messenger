@@ -25,13 +25,13 @@
 body {
     background-color: var(--secondary-blue);
     color: var(--text-color);
-    height: 100vh;
     display: flex;
+        height: 100vh;
+
     overflow-x: hidden;
 }
 
 .sidebar {
-    width: 300px;
     background-color: var(--secondary-blue);
     border-right: 1px solid #3c3c3c;
     display: flex;
@@ -39,13 +39,14 @@ body {
 }
 
 .settings {
-    padding: 15px;
     background-color: var(--primary-blue);
     height: 60px;
+    width: 300px;
 }
 
 .settings-btn {
     background: none;
+    padding: 15px;
     border: none;
     color: white;
     cursor: pointer;
@@ -130,6 +131,12 @@ body {
     border: 2px solid var(--secondary-blue);
 }
 
+.chat-header {
+    padding: 15px;
+    background-color: var(--primary-blue);
+    height: 60px;
+}
+
 .main-area {
     flex-grow: 1;
     display: flex;
@@ -142,7 +149,7 @@ body {
     background-color: var(--primary-blue);
     border-radius: 5px;
     margin-left: 15px;
-    max-width: 98vh;
+    max-width: 700px;
 }
 
 .search-input {
@@ -155,10 +162,12 @@ body {
 }
 
 .user-list {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    max-width: 100vh;
-    gap: 10px;
+    max-width: 715px;
+    gap: 15px;
+    overflow-y: auto;
 }
 
 .user-item {
@@ -188,21 +197,17 @@ body {
     background-color: var(--hover-color);
 }
 
-.chat-header {
-    padding: 15px;
-    background-color: var(--primary-blue);
-    height: 60px;
-}
+
 .main {
     background-image: url('/static/img/12.png');
-    background-size: cover; 
+    background-size: cover;
     background-color: var(--primary-blue);
     width: 40px; 
-    height: 40px; 
-    border: none; 
+    height: 40px;
+    border: none;
     cursor: pointer; 
-    margin-left: 200px;
     float: right;
+    margin: 10px;
 }
 </style>
 
@@ -234,7 +239,7 @@ body {
         <h3>Поиск друзей</h3>
     </div>
     <div class="search-bar">
-        <input type="text" class="search-input" placeholder="Поиск пользователей...">
+        <input type="text" class="search-input" maxlength="20" placeholder="Поиск пользователей...">
     </div>
     <div class="user-list" id="user-list">
         {% for chat in users_all %}

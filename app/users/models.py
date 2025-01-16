@@ -13,4 +13,5 @@ class User(Base):
     online_status: Mapped[bool] = mapped_column(Boolean, default=False)
     department: Mapped[int] = mapped_column(Integer, default=0)
     avatar: Mapped[int] = mapped_column(Integer, default=0)
+    role: Mapped[str] = mapped_column(String, default='User')
 

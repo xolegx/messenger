@@ -77,3 +77,15 @@ class BaseCORE:
                     await session.rollback()
                     raise e
                 return new_instance
+
+    @classmethod
+    async def delete_by_id(cls, data_id: int):
+        async with async_session_maker() as session:
+            query = select(cls.model).filter_by(id=data_id)
+            result = await session.execute(query)
+            instans = result.scalar_one_or_none()
+            if instans:
+                await session.delete(instans)
+                await session.commit()
+                return True
+            return False

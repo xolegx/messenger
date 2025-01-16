@@ -30,7 +30,6 @@ body {
     overflow-x: hidden;
 }
 .sidebar {
-    width: 300px;
     background-color: var(--secondary-blue);
     border-right: 1px solid #3c3c3c;
     display: flex;
@@ -38,13 +37,15 @@ body {
 }
 
 .settings {
-    padding: 15px;
     background-color: var(--primary-blue);
     height: 60px;
+    width: 300px;
+
 }
 
 .settings-btn {
     background: none;
+    padding: 15px;
     border: none;
     color: white;
     cursor: pointer;
@@ -106,10 +107,11 @@ body {
     font-size: 16px;
     text-align: left;
     margin-left: 15px;
+    width: 700px;
 }
 
 .profile-button {
-    padding: 5px;
+    padding: 10px;
     margin-left: 15px;
     background-color: #356693;
     border: none;
@@ -129,6 +131,9 @@ body {
 .profile-button.danger {
     background-color: var(--danger-color);
     text-align: left;
+    padding-left: 15px;
+    padding-right: 15px;
+
 }
 
 .profile-button.danger:hover {
@@ -158,8 +163,28 @@ body {
     height: 40px; 
     border: none; 
     cursor: pointer; 
-    margin-left: 200px;
     float: right;
+    margin: 10px;
+}
+
+#avaPicker {
+    display: none;
+    width: 640px;
+    resize: none;
+    overflow-y: auto;
+    position: fixed;
+    background-color: #356693;
+    padding: 10px;
+    z-index: 1000;
+    border-radius: 10px;
+
+}
+
+#avaPicker .ava-button {
+    cursor: pointer;
+    background-color: var(--primary-blue);
+    border-radius: 5px;
+    border-color: var(--primary-blue);
 }
 
 </style>
@@ -184,23 +209,24 @@ body {
         <h3>Профиль</h3>
     </div>
     <div class="profile-area-button">
-        <input type="text" class="setInput" maxlength="4" placeholder="Введите отдел" >
+        <input type="text" class="setInput" maxlength="4" placeholder="Введите отдел..." >
         <button class="profile-button">Выбор отдела</button>
     </div>
     
     <div class="profile-area-button">
-        <span style="font-size: 25px; padding: 3px;">👤</span>
-        <button class="profile-button">Выбор аватара</button>
+        <span id = "ava" style="font-size: 28px;">👤</span>
+        <button class="profile-button" id = "chose_avatar">Выбор аватара</button>
+        <div class="ava-picker" id="avaPicker"></div>
     </div>
 
     <div class="profile-area-button">
-        <input type="text" class="setInput" maxlength="4" placeholder="Введите новое имя" >
+        <input type="text" class="setInput" maxlength="20" placeholder="Введите новое имя..." >
         <button class="profile-button">Смена имени</button>
     </div>
 
     <div class="profile-area-button">
-        <input type="text" class="setInput" maxlength="4" placeholder="Введите старый пароль" >
-        <input type="text" class="setInput" maxlength="4" placeholder="Введите новый пароль" >
+        <input type="text" class="setInput" maxlength="20" placeholder="Введите старый пароль..." >
+        <input type="text" class="setInput" maxlength="20" placeholder="Введите новый пароль..." >
         <button class="profile-button">Смена пароля</button>
     </div>
     <div class="profile-area-button">
@@ -213,6 +239,31 @@ body {
 <script>
 const settingsBtn = document.querySelector('.settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
+// Функция выбора аватара
+const avatars = ['👩','👨','🧑','👧','👦','🧒','👶','👵','👴','🧓','👩‍🦰','👨‍🦰','👩‍🦱','👨‍🦱','👩‍🦲','👨‍🦲','👩‍🦳','👨‍🦳','👱‍♀️','👱‍♂️','👸','🤴','👳‍♀️','👳‍♂️','👲','🧔','👼','🤶','🎅','👩🏻','👨🏻','🧑🏻','👧🏻','👦🏻','🧒🏻','👶🏻','👵🏻','👴🏻','🧓🏻','👩🏻‍🦰','👨🏻‍🦰','👩🏻‍🦱','👨🏻‍🦱','👩🏻‍🦲','👨🏻‍🦲','👩🏻‍🦳','👨🏻‍🦳','👱🏻‍♀️','👱🏻‍♂️','👸🏻','🤴🏻','👳🏻‍♀️','👳🏻‍♂️','👲🏻','🧔🏻','👼🏻','🤶🏻','🎅🏻','👩🏿','👨🏿','🧑🏿','👧🏿','👦🏿','🧒🏿','👶🏿','👵🏿','👴🏿','🧓🏿','👩🏿‍🦰','👨🏿‍🦰','👩🏿‍🦱','👨🏿‍🦱','👩🏿‍🦲','👨🏿‍🦲','👩🏿‍🦳','👨🏿‍🦳','👱🏿‍♀️','👱🏿‍♂️','👸🏿','🤴🏿','👳🏿‍♀️','👳🏿‍♂️','👲🏿','🧔🏿','👼🏿','🤶🏿','🎅🏿','👤'];
+const avatarEl = document.getElementById('ava');
+const avaPicker = document.getElementById('avaPicker');
+const avatarButton = document.getElementById('chose_avatar');
+function setAva(avatar){
+    avatarEl.textContent = avatar;
+
+}
+avatarButton.addEventListener('click', (event) => {
+    event.stopPropagation();
+    avaPicker.style.display = avaPicker.style.display === 'none' || 
+    avaPicker.style.display === '' ? 'block' : 'none';
+});
+document.addEventListener('click', () => {avaPicker.style.display = 'none';});
+
+avatars.forEach(ava => {
+    const button = document.createElement('button');
+    button.textContent = ava;
+    button.className = 'ava-button';
+    button.onclick = () => setAva(ava);
+    avaPicker.appendChild(button);
+});
+
+
 
 // Функция выхода из аккаунта
 async function logout() {
@@ -247,8 +298,16 @@ profileButtons.forEach(button => {
     button.addEventListener('click', () => {
         if (button.textContent === 'Удалить аккаунт') {
             if (confirm('Вы уверены, что хотите удалить аккаунт? Это действие нельзя отменить.')) {
-                alert('Аккаунт удален');
+             try {
+                const response = fetch(`/auth/user/`, {
+                    method: 'DELETE'
+                });
+            } catch (error) {
+                console.error('Ошибка при выполнении запроса:', error);
             }
+                        alert('Аккаунт удален');
+                        window.location.href = '/'
+                    }
         } 
     });
 });

@@ -45,6 +45,10 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
 
 @router.get("/messages/{user_id}", response_model=List[MessageRead])
 async def get_messages(user_id: int, current_user: User = Depends(get_current_user)):
+    '''@router.get("/messages/{user_id}", response_model=List[MessageRead])
+async def get_messages(user_id: int, current_user: User = Depends(get_current_user)):
+    messages = await MessagesCORE.get_messages_between_users(user_id_1=user_id, user_id_2=current_user.id) or []
+    return messages'''
     return await MessagesCORE.get_messages_between_users(user_id_1=user_id, user_id_2=current_user.id) or []
 
 
@@ -84,11 +88,12 @@ async def mark_as_read(message_id: int):
 
 
 @router.get("/messages/unread/{user_id}")
-async def count_unread_messages(user_id: int):
+async def count_unread_messages(user_id: int, user_data: User = Depends(get_current_user)):
     async with async_session_maker() as session:
         result = await session.execute(
             select(Message).filter(
-                Message.recipient_id == user_id,
+                Message.recipient_id == user_data.id,
+                Message.sender_id == user_id,
                 Message.is_read == False
             )
         )

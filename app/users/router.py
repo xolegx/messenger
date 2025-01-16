@@ -79,3 +79,10 @@ async def get_profile(request: Request):
 @router.get("/files")
 async def get_profile(request: Request):
     return templates.TemplateResponse("files.html", {"request": request})
+
+
+@router.delete("/user/")
+async def register_user(user_data: User = Depends(get_current_user)):
+    await UsersCORE.delete_by_id(
+        data_id=user_data.id
+    )
