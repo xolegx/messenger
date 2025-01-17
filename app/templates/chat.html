@@ -323,16 +323,16 @@ async function selectUser(userId, userName, event) {
     messagesContainer.style.backgroundImage = "url('/static/img/chatwall2.png')"; 
 
     
-    document.querySelectorAll('.friend').forEach(item => item.classList.remove('active'));
-    event.target.classList.add('active');
-    messagesContainer.innerHTML = '';
-    messagesContainer.style.display = 'block';
-
-    await loadMessages(userId);
-    connectWebSocket();
-    startMessagePolling(userId);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;}
+    if (!event.target.classList.contains('active')){ document.querySelectorAll('.friend').forEach(item => item.classList.remove('active'));
+        event.target.classList.add('active');
+        const messagesContainer = document.getElementById('messages');
+        messagesContainer.innerHTML = '';
+        messagesContainer.style.display = 'block';
     
+        await loadMessages(userId);
+        connectWebSocket();
+        startMessagePolling(userId);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;}}
 
 // Загрузка сообщений
 async function loadMessages(userId) {
@@ -340,15 +340,11 @@ async function loadMessages(userId) {
     try {
         const response = await fetch(`/chat/messages/${userId}`);
         const messages = await response.json();
-        //console.log(messages.length, previousMessages.length);
-        if (messages.length !== previousMessages.length) {
-            previousMessages = messages;
-            const messagesContainer = document.getElementById('messages');
+        const messagesContainer = document.getElementById('messages');
         messagesContainer.innerHTML = messages.map(message =>
             createMessageElement(message.content, message.recipient_id)
         ).join('');
-        }
-        
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
     } catch (error) {
         console.error('Ошибка загрузки сообщений:', error);
     }
@@ -390,10 +386,13 @@ async function sendMessage() {
             socket.send(JSON.stringify(payload));
             addMessage(message, selectedUserId);
             messageInput.value = '';
+            
         } catch (error) {
             console.error('Ошибка при отправке сообщения:', error);
         }
+
     }
+
 }
 
 // Функция выхода из аккаунта
@@ -442,34 +441,12 @@ function addUserClickListeners() {
     });
 }
 
-const currentUserId = parseInt("{{ user.id }}", 10);
-let selectedUserId = null;
-let socket = null;
-let previousMessages = 0;
-let messagePollingInterval = null;
-let status = null;
-const fileBtn = document.querySelector('.file-btn');
-const fileInput = document.querySelector('.file-input');
-const settingsBtn = document.querySelector('.settings-btn');
-const settingsMenu = document.querySelector('.settings-menu');
-settingsBtn.addEventListener('click', () => {
-    settingsMenu.classList.toggle('active');
-});
-document.addEventListener('click', (e) => {
-    if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
-        settingsMenu.classList.remove('active');
-    }
-});
-
-// Первоначальная настройка событий нажатия на пользователей
-const avatars = ['👨', '👩', '👶', '👧', '👦', '👵', '👴', '🧔', '👨‍🦲','👨‍🦰', '👩‍🦰', '👨‍🦱', '👩‍🦱', '👨‍🦳', '👩‍🦳', '👩‍🦲' ];
-const friends = document.getElementById('friends-list');
-// Обновление списка пользователей
 async function fetchUsers() {
     try {
         const response = await fetch('/auth/users');
         const users = await response.json();
         const userList = document.getElementById('friends-list');
+        const avatar = parseInt("{{ user.avatar }}", 10);
         userList.innerHTML = '';
         // Создаем элемент "Избранное" для текущего пользователя
         const favoriteElement = document.createElement('div');
@@ -478,7 +455,7 @@ async function fetchUsers() {
 
         // Добавляем "Избранное"
         favoriteElement.innerHTML = `
-            <span style="font-size: 30px;">📝</span>
+            <span style="font-size: 30px;">${avatars[avatar]}</span>
                 <div>Мои записи</div>`;
 
         userList.appendChild(favoriteElement);
@@ -492,7 +469,7 @@ async function fetchUsers() {
                 userElement.setAttribute('status', user.status);
                 // Устанавливаем контент с учетом аватара, имени и последнего сообщения
                 userElement.innerHTML = `
-                    <span style="font-size: 30px;">${user.avatar || "👤"}</span>
+                    <span style="font-size: 30px;">${avatars[user.avatar]}</span>
                         ${user.name} 
                         <!--div class="online-status" style="float: right; margin-top: 5px"></div>
                         <small style="color: #8e8e8e;">${user.lastMessage || "Нет сообщений"}</small-->
@@ -547,17 +524,36 @@ async function checkUnreadMessages(userId) {
         notification.style.display = "none";
     }
 }
+const emojis = [ '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '💪','🦵','🦶','👂','👃','🤏','👈','👉','☝','👆','👇','✌','🤞','🖖','🤘','🤙','🖐','✋','👌','👍','👎','✊','👊','🤛','🤜','🤚','🤟','✍','🙏','🤝','👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '👩', '🧔', '👵', '👴', '👲', '👳‍♀', '👳‍♂', '🧕', '👮‍♀', '👮‍♂', '👷‍♀', '👷‍♂', '💂‍♀', '💂‍♂', '🕵️‍♀', '🕵️‍♂', '👩‍⚕', '👨‍⚕', '👩‍🌾', '👨‍🌾', '👩‍🍳', '👨‍🍳', '👩‍🎓', '👨‍🎓', '👩‍🎤', '👨‍🎤', '👩‍🏫', '👨‍🏫', '👩‍🏭', '👨‍🏭', '👩‍💻', '👨‍💻', '👩‍💼', '👨‍💼', '👩‍🔧', '👨‍🔧', '👩‍🔬', '👨‍🔬', '👩‍🎨', '👨‍🎨', '👩‍🚒', '👨‍🚒', '👩‍✈', '👨‍✈', '👩‍🚀', '👨‍🚀', '👩‍⚖', '👨‍⚖', '🤶', '🎅', '🧙‍♀', '🧙‍♂', '🧝‍♀', '🧝‍♂', '🧛‍♀', '🧛‍♂', '🧟‍♀', '🧟‍♂', '🧞‍♀', '🧞‍♂', '🧜‍♀', '🧜‍♂', '🧚‍♀', '🧚‍♂', '👼', '🤰', '🤱', '🙇‍♀', '🙇‍♂', '💁‍♀', '💁‍♂', '🙅‍♀', '🙅‍♂', '🙆‍♀', '🙆‍♂', '🙋‍♀', '🙋‍♂', '🧏‍♀', '🧏‍♂', '🤦‍♀', '🤦‍♂', '🤷‍♀', '🤷‍♂', '🙎‍♀', '🙎‍♂', '🙍‍♀', '🙍‍♂', '💇‍♀', '💇‍♂', '💆‍♀', '💆‍♂', '🧖‍♀', '🧖‍♂', '💅', '🤳', '💃', '🕺', '👯‍♀', '👯‍♂', '🕴️', '👩‍🦽', '👨‍🦽', '👩‍🦼', '👨‍🦼', '🧗‍♀', '🧗‍♂', '🤺', '🏇','💾','📖','🚪'];
 
+const avatars = ['👩','👨','🧑','👧','👦','🧒','👶','👵','👴','🧓','👩‍🦰','👨‍🦰','👩‍🦱','👨‍🦱','👩‍🦲','👨‍🦲','👩‍🦳','👨‍🦳','👱‍♀️','👱‍♂️','👸','🤴','👳‍♀️','👳‍♂️','👲','🧔','👼','🤶','🎅','👩🏻','👨🏻','🧑🏻','👧🏻','👦🏻','🧒🏻','👶🏻','👵🏻','👴🏻','🧓🏻','👩🏻‍🦰','👨🏻‍🦰','👩🏻‍🦱','👨🏻‍🦱','👩🏻‍🦲','👨🏻‍🦲','👩🏻‍🦳','👨🏻‍🦳','👱🏻‍♀️','👱🏻‍♂️','👸🏻','🤴🏻','👳🏻‍♀️','👳🏻‍♂️','👲🏻','🧔🏻','👼🏻','🤶🏻','🎅🏻','👩🏿','👨🏿','🧑🏿','👧🏿','👦🏿','🧒🏿','👶🏿','👵🏿','👴🏿','🧓🏿','👩🏿‍🦰','👨🏿‍🦰','👩🏿‍🦱','👨🏿‍🦱','👩🏿‍🦲','👨🏿‍🦲','👩🏿‍🦳','👨🏿‍🦳','👱🏿‍♀️','👱🏿‍♂️','👸🏿','🤴🏿','👳🏿‍♀️','👳🏿‍♂️','👲🏿','🧔🏿','👼🏿','🤶🏿','🎅🏿','👤'];
+const currentUserId = parseInt("{{ user.id }}", 10);
+let selectedUserId = null;
+let socket = null;
+let previousMessages = 0;
+let messagePollingInterval = null;
+let status = null;
+const fileBtn = document.querySelector('.file-btn');
+const fileInput = document.querySelector('.file-input');
+const settingsBtn = document.querySelector('.settings-btn');
+const settingsMenu = document.querySelector('.settings-menu');
+settingsBtn.addEventListener('click', () => {
+    settingsMenu.classList.toggle('active');
+});
+document.addEventListener('click', (e) => {
+    if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
+        settingsMenu.classList.remove('active');
+    }
+});
+
+// Первоначальная настройка событий нажатия на пользователей
+const friends = document.getElementById('friends-list');
+// Обновление списка пользователей
 const userID = parseInt(selectedUserId, 10);
-
-
 // Эмодзи пикер
 const emojiBtn = document.querySelector('.emoji-btn');
 const emojiPicker = document.getElementById('emojiPicker');
 const messageInput = document.querySelector('.message-input input');
-
-// Список эмодзи
-const emojis = [ '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '💪','🦵','🦶','👂','👃','🤏','👈','👉','☝','👆','👇','✌','🤞','🖖','🤘','🤙','🖐','✋','👌','👍','👎','✊','👊','🤛','🤜','🤚','🤟','✍','🙏','🤝','👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '👩', '🧔', '👵', '👴', '👲', '👳‍♀', '👳‍♂', '🧕', '👮‍♀', '👮‍♂', '👷‍♀', '👷‍♂', '💂‍♀', '💂‍♂', '🕵️‍♀', '🕵️‍♂', '👩‍⚕', '👨‍⚕', '👩‍🌾', '👨‍🌾', '👩‍🍳', '👨‍🍳', '👩‍🎓', '👨‍🎓', '👩‍🎤', '👨‍🎤', '👩‍🏫', '👨‍🏫', '👩‍🏭', '👨‍🏭', '👩‍💻', '👨‍💻', '👩‍💼', '👨‍💼', '👩‍🔧', '👨‍🔧', '👩‍🔬', '👨‍🔬', '👩‍🎨', '👨‍🎨', '👩‍🚒', '👨‍🚒', '👩‍✈', '👨‍✈', '👩‍🚀', '👨‍🚀', '👩‍⚖', '👨‍⚖', '🤶', '🎅', '🧙‍♀', '🧙‍♂', '🧝‍♀', '🧝‍♂', '🧛‍♀', '🧛‍♂', '🧟‍♀', '🧟‍♂', '🧞‍♀', '🧞‍♂', '🧜‍♀', '🧜‍♂', '🧚‍♀', '🧚‍♂', '👼', '🤰', '🤱', '🙇‍♀', '🙇‍♂', '💁‍♀', '💁‍♂', '🙅‍♀', '🙅‍♂', '🙆‍♀', '🙆‍♂', '🙋‍♀', '🙋‍♂', '🧏‍♀', '🧏‍♂', '🤦‍♀', '🤦‍♂', '🤷‍♀', '🤷‍♂', '🙎‍♀', '🙎‍♂', '🙍‍♀', '🙍‍♂', '💇‍♀', '💇‍♂', '💆‍♀', '💆‍♂', '🧖‍♀', '🧖‍♂', '💅', '🤳', '💃', '🕺', '👯‍♀', '👯‍♂', '🕴️', '👩‍🦽', '👨‍🦽', '👩‍🦼', '👨‍🦼', '🧗‍♀', '🧗‍♂', '🤺', '🏇','💾','📖','🚪'];
 
 // Добавляем эмодзи в пикер
 emojis.forEach(emoji => {
@@ -569,7 +565,6 @@ emojis.forEach(emoji => {
     });
     emojiPicker.appendChild(span);
 });
-
 
 //setInterval(() => {users.forEach(user => {console.log(user);});},1000);
 
@@ -599,11 +594,9 @@ document.addEventListener('click', (e) => {
     }
 });
 
-
 document.addEventListener('DOMContentLoaded', fetchUsers);
 document.addEventListener('DOMContentLoaded', updateMess);
 //setInterval(fetchUsers, 1000); // Обновление каждые 10 секунд
-
 
 // Обработчики для кнопки отправки и ввода сообщения
 document.getElementById('send-btn').onclick = sendMessage;
@@ -659,6 +652,14 @@ buttons.forEach(button => {
 });
 
 
+async function check(){
+    const response = await fetch('/auth/users');
+    const users = await response.json();
+    users.forEach(user => {
+            });
+}
+
+//check();
 
 
 </script>
