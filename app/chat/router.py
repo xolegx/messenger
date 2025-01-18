@@ -11,6 +11,7 @@ from app.users.models import User
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import async_session_maker
 from sqlalchemy.future import select
+from sqlalchemy import update
 
 import asyncio
 
@@ -45,10 +46,6 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
 
 @router.get("/messages/{user_id}", response_model=List[MessageRead])
 async def get_messages(user_id: int, current_user: User = Depends(get_current_user)):
-    '''@router.get("/messages/{user_id}", response_model=List[MessageRead])
-async def get_messages(user_id: int, current_user: User = Depends(get_current_user)):
-    messages = await MessagesCORE.get_messages_between_users(user_id_1=user_id, user_id_2=current_user.id) or []
-    return messages'''
     return await MessagesCORE.get_messages_between_users(user_id_1=user_id, user_id_2=current_user.id) or []
 
 
@@ -87,8 +84,8 @@ async def mark_as_read(message_id: int):
     return message
 
 
-@router.get("/messages/unread/{user_id}")
-async def count_unread_messages(user_id: int, user_data: User = Depends(get_current_user)):
+@router.get("/messages/unread_count/{user_id}")
+async def count_unread_count_messages(user_id: int, user_data: User = Depends(get_current_user)):
     async with async_session_maker() as session:
         result = await session.execute(
             select(Message).filter(
@@ -101,3 +98,28 @@ async def count_unread_messages(user_id: int, user_data: User = Depends(get_curr
         count = len(unread_messages)  # Подсчитываем количество непрочитанных сообщений
 
     return {"unread_count": count}
+
+
+@router.put("/messages/read/{user_id}")
+async def count_unread_count_messages(user_id: int, user_data: User = Depends(get_current_user)):
+    async with async_session_maker() as session:
+        result = await session.execute(
+            select(Message).filter(
+                Message.recipient_id == user_data.id,
+                Message.sender_id == user_id,
+                Message.is_read == False
+            )
+        )
+        unread_messages = result.scalars().all()  # Получаем все непрочитанные сообщения
+        if unread_messages:
+            # Обновляем is_read на True
+            await session.execute(
+                update(Message)
+                    .where(
+                    Message.id.in_([message.id for message in unread_messages])
+                )
+                    .values(is_read=True)
+            )
+
+            # Не забудьте зафиксировать изменения
+            await session.commit()

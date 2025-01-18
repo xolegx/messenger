@@ -106,6 +106,10 @@ body {
     margin-right: 10px;
 }
 
+.friend.active {
+    background-color: var(--hover-color);
+}
+
 .chat-area {
     flex-grow: 1;
     display: flex;

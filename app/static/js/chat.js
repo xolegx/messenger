@@ -39,6 +39,7 @@ async function selectUser(userId, userName, event) {
         await loadMessages(userId);
         connectWebSocket();
         startMessagePolling(userId);
+        readMessages(userId);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;}}
 
 // Обработка нажатий на пользователя
@@ -84,7 +85,7 @@ async function fetchUsers() {
                         <div class="mail" id='notification-${user.id}' style="display: none;">💬 <span class="notification-badge" id="unread-count-${user.id}"></span>
                 </div>`;
                 userList.appendChild(userElement);
-                checkUnreadMessages(user.id);
+                checkUnreadCountMessages(user.id);
             }
 
         });
@@ -166,8 +167,8 @@ async function updateMess() {
         const users = await response.json();
 
         users.forEach(user => {
-            if (user.id !== currentUserId) {
-                setInterval(() => checkUnreadMessages(user.id),5000);
+            if (user.id !== currentUserId ) {
+                setInterval(() => checkUnreadCountMessages(user.id),1000);
             }
 
         });
@@ -179,22 +180,51 @@ async function updateMess() {
     }
 }
 
-async function checkUnreadMessages(userId) {
-    const response = await fetch(`/chat/messages/unread/${userId}`);
+async function checkUnreadCountMessages(userId) {
+    const response = await fetch(`/chat/messages/unread_count/${userId}`);
     const data = await response.json();
     const unreadCount = data.unread_count;
+
     const notification = document.getElementById(`notification-${userId}`);
     const unreadCountEl = document.getElementById(`unread-count-${userId}`); // Обновить количество
 
-    if (unreadCount > 0) {
-        // Показать значок непрочитанного сообщения
-        notification.style.display = "block";
-        unreadCountEl.textContent = unreadCount;
-            } else {
-        // Скрыть значок
+    // Получаем элемент пользователя по data-user-id
+    const userElement = document.querySelector(`.friend[data-user-id="${userId}"]`);
+
+    // Проверяем, существует ли элемент и имеет ли он класс active
+    if (userElement && userElement.classList.contains('active')) {
+        // Если элемент активен, скрываем уведомление
+        readMessages(userId);
         notification.style.display = "none";
+    } else {
+        // Если элемент не активен, показываем или скрываем уведомление в зависимости от unreadCount
+        if (unreadCount > 0) {
+            // Показать значок непрочитанного сообщения
+            notification.style.display = "block";
+            unreadCountEl.textContent = unreadCount;
+        } else {
+            // Скрыть значок
+            notification.style.display = "none";
+        }
     }
 }
+
+async function readMessages(userId) {
+    try {
+        const response = await fetch(`/chat/messages/read/${userId}`, { // Убедитесь, что вы передаете правильные параметры
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json',}
+        });
+        if (response.ok) {
+            console.log('Сообщения прочитаны');
+        } else {
+            console.error('Ошибка');
+        }
+    } catch (error) {
+        console.error('Ошибка при выполнении запроса:', error);
+    }
+}
+
 
 // Функция выхода из аккаунта
 async function logout() {
