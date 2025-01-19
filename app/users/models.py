@@ -11,7 +11,7 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     email: Mapped[str] = mapped_column(String, nullable=False)
     online_status: Mapped[bool] = mapped_column(Boolean, default=False)
-    department: Mapped[int] = mapped_column(Integer, default=0)
-    avatar: Mapped[int] = mapped_column(Integer, default=0)
+    department: Mapped[str] = mapped_column(String, default="Введите номер отдела")
+    avatar: Mapped[int] = mapped_column(Integer, default=87)
     role: Mapped[str] = mapped_column(String, default='User')
 

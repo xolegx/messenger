@@ -29,8 +29,8 @@
         <h3>Профиль</h3>
     </div>
     <div class="profile-area-button">
-        <input type="text" class="setInput" maxlength="4" placeholder="Введите отдел..." >
-        <button class="profile-button">Выбор отдела</button>
+        <input type="text" id="newDepartment" class="setInput" maxlength="4" placeholder="{{user.department}}" >
+        <button class="profile-button" onclick="changeDepartment()">Выбор отдела</button><div id="departmentChangeMessage"></div>
     </div>
     
     <div class="profile-area-button">
@@ -40,14 +40,19 @@
     </div>
 
     <div class="profile-area-button">
-        <input type="text" class="setInput" maxlength="20" placeholder="Введите новое имя..." >
-        <button class="profile-button">Смена имени</button>
+        <input type="text" id="newName" class="setInput" maxlength="20" placeholder="{{user.name}}" >
+        
+        <button class="profile-button" onclick="changeName()">Смена имени</button>
+        <div id="nameChangeMessage"></div>
     </div>
 
     <div class="profile-area-button">
-        <input type="text" class="setInput" maxlength="20" placeholder="Введите старый пароль..." >
-        <input type="text" class="setInput" maxlength="20" placeholder="Введите новый пароль..." >
-        <button class="profile-button">Смена пароля</button>
+        <input type="password" id="oldPassword" class="setInput" maxlength="20" placeholder="Введите старый пароль..." required="">
+        <input type="password" id="newPassword" class="setInput" maxlength="20" placeholder="Введите новый пароль..." required="">
+        <input type="password" id="confirmNewPassword" class="setInput" maxlength="20" placeholder="Подтвердите новый пароль..." required="" >
+        <button class="profile-button" onclick="changePassword()">Смена пароля</button>
+               <div id="passwordChangeMessage"></div>
+
     </div>
     <div class="profile-area-button">
         <button class="profile-button danger">Удалить аккаунт</button>
@@ -58,8 +63,10 @@
 
 <script>
     const currentUserId = parseInt("{{ user.id }}", 10);
+    const avatar = parseInt("{{ user.avatar }}", 10);
 </script>
 <script src="/static/js/profile.js"></script>
 
 </body>
 </html>
+

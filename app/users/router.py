@@ -5,15 +5,17 @@ from fastapi.responses import HTMLResponse
 from app.exceptions import UserAlreadyExistsException, IncorrectEmailOrPasswordException, PasswordMismatchException
 from app.users.auth import get_password_hash, authenticate_user, create_access_token
 from app.users.core import UsersCORE
-from app.users.schemas import SUserRegister, SUserAuth, SUserRead, SProfile
+from app.users.schemas import SUserRegister, SUserAuth, SUserRead, ChangePasswordRequest, ChangeNameRequest, ChangeDepartmentRequest
 from fastapi.templating import Jinja2Templates
 from app.users.dependencies import get_current_user
 from app.users.models import User
 from app.database import async_session_maker
 from sqlalchemy.future import select
+from passlib.context import CryptContext
 
 router = APIRouter(prefix='/auth', tags=['Auth'])
 templates = Jinja2Templates(directory='app/templates')
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 @router.get("/", response_class=HTMLResponse, summary="Страница авторизации")
@@ -62,15 +64,15 @@ async def get_users():
     return [{'id': user.id, 'name': user.name, 'avatar': user.avatar, 'online_status': user.online_status, 'department': user.department, 'role': user.role} for user in users_all]
 
 
+@router.get("/user/{user_id}", response_model=SUserRead)
+async def get_user(user_id: int):
+    user = await UsersCORE.find_one_or_none_by_id(user_id)
+    return user
+
+
 @router.get("/profile")
 async def get_profile(request: Request, user_data: User = Depends(get_current_user)):
     return templates.TemplateResponse("profile.html", {"request": request, "user": user_data})
-
-
-@router.get("/sprofile/{user_id}", response_model=SProfile)
-async def my_profile(user_id: int):
-    user_profile = await UsersCORE.get_profile_userid(user_id)
-    return {'id': user_profile.id, 'avatar': user_profile.avatar, 'department': user_profile.department}
 
 
 @router.get("/friends")
@@ -113,3 +115,35 @@ async def update_avatar(user_id: int, new_avatar: int):
         await session.refresh(user)  # Обновляем информацию о пользователе
 
         return {"id": user.id, "avatar": user.avatar}
+
+
+@router.post("/change-password")
+async def change_password(request: ChangePasswordRequest, current_user: User = Depends(get_current_user)):
+    if not pwd_context.verify(request.old_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Неправильный старый пароль")
+
+    async with async_session_maker() as session:
+        hashed_new_password = pwd_context.hash(request.new_password)
+        current_user.hashed_password = hashed_new_password
+        session.add(current_user)
+        await session.commit()
+
+        return {"detail": "Пароль успешно изменен"}
+
+
+@router.post("/change-name")
+async def change_name(request: ChangeNameRequest, current_user: User = Depends(get_current_user)):
+    current_user.name = request.new_name  # Обновляем имя пользователя
+    async with async_session_maker() as session:
+        session.add(current_user)
+        await session.commit()
+    return {"detail": "Имя успешно изменено"}
+
+
+@router.post("/change-department")
+async def change_department(request: ChangeDepartmentRequest, current_user: User = Depends(get_current_user)):
+    current_user.department = request.new_department  # Обновляем отдел пользователя
+    async with async_session_maker() as session:
+        session.add(current_user)
+        await session.commit()
+    return {"detail": "Отдел успешно изменен"}

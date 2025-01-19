@@ -116,7 +116,6 @@ async function loadMessages(userId) {
         messagesContainer.innerHTML = messages.map(message =>
             createMessageElement(message.content, message.recipient_id, message.created_at)
         ).join('');
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
     } catch (error) {
         console.error('Ошибка загрузки сообщений:', error);
     }
@@ -144,24 +143,29 @@ async function sendMessage() {
         } catch (error) {
             console.error('Ошибка при отправке сообщения:', error);
         }
+
     }
+
 }
 
 // Добавление сообщения в чат
 function addMessage(text, recipient_id) {
     const messagesContainer = document.getElementById('messages');
-    //messagesContainer.insertAdjacentHTML('beforeend', createMessageElement(text, recipient_id));
+    messagesContainer.insertAdjacentHTML('beforeend', createMessageElement(text, recipient_id));
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
 // Создание HTML элемента сообщения
 
 function createMessageElement(text, recipient_id, createdAt) {
-    const messageClass = currentUserId === recipient_id ? 'my-message' : 'other-message';
-    return `<div class="message ${messageClass}">${text}<div class="createdAt">${createdAt}</div></div>`;
-    }
-
+    const date = new Date(createdAt);
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
 // Запуск опроса новых сообщений
+    const messageClass = currentUserId === recipient_id ? 'other-message' : 'my-message';
+    return `<div class="message ${messageClass}">${text}<div class="createdAt">${hours+5}:${minutes}</div></div>`;
+    }
+    
 function startMessagePolling(userId) {
     clearInterval(messagePollingInterval);
     messagePollingInterval = setInterval(() => loadMessages(userId), 1000);
