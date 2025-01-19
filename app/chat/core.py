@@ -3,6 +3,7 @@ from app.core.base import BaseCORE
 from app.chat.models import Message
 from app.database import async_session_maker
 from app.config import get_auth_data
+from cryptography.fernet import Fernet
 
 
 class MessagesCORE(BaseCORE):
@@ -28,14 +29,20 @@ class MessagesCORE(BaseCORE):
                 )
             ).order_by(cls.model.id)
             result = await session.execute(query)
-            return result.scalars().all()
+            messages = result.scalars().all()
+            for message in messages:
+                message.content = decrypt_message(message.content)
+            return messages
+
 
 auth_data = get_auth_data()
-cipher_suite = auth_data['crypt_key']
-def encrypt_message(message: str) -> str:
-    return cipher_suite.encrypt(message.encode()).decode()
+crypt_key = auth_data['crypt_key']  # Получаем ключ из данных аутентификации
 
+# Создаем экземпляр Fernet с вашим ключом
+cipher_suite = Fernet(crypt_key)
 
-def decrypt_message(encrypted_message: str) -> str:
-    return cipher_suite.decrypt(encrypted_message.encode()).decode()
+def encrypt_message(message: str) ->  str:
+    return cipher_suite.encrypt(message.encode()).decode()  # Шифруем сообщение
 
+def decrypt_message(encrypted_message: str) ->  str:
+    return cipher_suite.decrypt(encrypted_message.encode()).decode()  # Расшифровываем сообщение

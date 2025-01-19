@@ -98,14 +98,23 @@ async function fetchUsers() {
 }
 
 // Загрузка сообщений
-async function loadMessages(userId) {
 
+
+
+
+
+
+
+
+
+
+async function loadMessages(userId) {
     try {
         const response = await fetch(`/chat/messages/${userId}`);
         const messages = await response.json();
         const messagesContainer = document.getElementById('messages');
         messagesContainer.innerHTML = messages.map(message =>
-            createMessageElement(message.content, message.recipient_id)
+            createMessageElement(message.content, message.recipient_id, message.created_at)
         ).join('');
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     } catch (error) {
@@ -135,9 +144,7 @@ async function sendMessage() {
         } catch (error) {
             console.error('Ошибка при отправке сообщения:', error);
         }
-
     }
-
 }
 
 // Добавление сообщения в чат
@@ -148,11 +155,11 @@ function addMessage(text, recipient_id) {
 }
 
 // Создание HTML элемента сообщения
-function createMessageElement(text, recipient_id) {
-    const userID = parseInt(selectedUserId, 10);
-    const messageClass = userID === recipient_id ? 'my-message' : 'other-message';
-    return `<div class="message ${messageClass}">${text}</div>`;
-}
+
+function createMessageElement(text, recipient_id, createdAt) {
+    const messageClass = currentUserId === recipient_id ? 'my-message' : 'other-message';
+    return `<div class="message ${messageClass}">${text}<div class="createdAt">${createdAt}</div></div>`;
+    }
 
 // Запуск опроса новых сообщений
 function startMessagePolling(userId) {
@@ -170,7 +177,6 @@ async function updateMess() {
             if (user.id !== currentUserId ) {
                 setInterval(() => checkUnreadCountMessages(user.id),1000);
             }
-
         });
         //
         // Повторно добавляем обработчики событий для каждого пользователя
@@ -224,6 +230,12 @@ async function readMessages(userId) {
         console.error('Ошибка при выполнении запроса:', error);
     }
 }
+
+
+
+
+
+
 
 
 // Функция выхода из аккаунта

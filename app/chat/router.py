@@ -2,7 +2,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request, Depends,
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from typing import List, Dict
-from app.chat.core import MessagesCORE
+from app.chat.core import MessagesCORE, encrypt_message
 from app.chat.schemas import MessageRead, MessageCreate
 from app.chat.models import Message
 from app.users.core import UsersCORE
@@ -51,9 +51,11 @@ async def get_messages(user_id: int, current_user: User = Depends(get_current_us
 
 @router.post("/messages", response_model=MessageCreate)
 async def send_message(message: MessageCreate, current_user: User = Depends(get_current_user)):
+    encrypted_content = encrypt_message(message.content)  # Шифруем и декодируем в строку
+
     await MessagesCORE.add(
         sender_id=current_user.id,
-        content=message.content,
+        content=encrypted_content,  # Сохраняем зашифрованное содержимое
         recipient_id=message.recipient_id,
     )
     message_data = {
