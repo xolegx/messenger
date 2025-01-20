@@ -39,3 +39,7 @@ class ChangeNameRequest(BaseModel):
 
 class ChangeDepartmentRequest(BaseModel):
     new_department: str = Field(..., description="Новый номер отдела")
+
+
+class UserStatusUpdate(BaseModel):
+    online_status: bool = Field(..., description="Обновление статуса")

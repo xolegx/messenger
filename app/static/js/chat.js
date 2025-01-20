@@ -4,7 +4,10 @@ function connectWebSocket() {
 
     socket = new WebSocket(`ws://${window.location.host}/chat/ws/${selectedUserId}`);
 
-    socket.onopen = () => console.log('WebSocket соединение установлено');
+    socket.onopen = () => {
+        console.log('WebSocket соединение установлено');
+        statusOn(currentUserId);
+    }
 
     socket.onmessage = (event) => {
         const incomingMessage = JSON.parse(event.data);
@@ -13,7 +16,8 @@ function connectWebSocket() {
         }
     };
 
-    socket.onclose = () => console.log('WebSocket соединение закрыто');
+    socket.onclose = () => 
+        console.log('WebSocket соединение закрыто');
 }
 
 // Функция выбора пользователя
@@ -75,15 +79,19 @@ async function fetchUsers() {
                 const userElement = document.createElement('div');
                 userElement.classList.add('friend');
                 userElement.setAttribute('data-user-id', user.id);
-                userElement.setAttribute('status', user.status);
+                userElement.setAttribute('status', user.online_status);
                 // Устанавливаем контент с учетом аватара, имени и последнего сообщения
                 userElement.innerHTML = `
                     <span style="font-size: 30px;">${avatars[user.avatar]}</span>
-                        ${user.name}
-                        <!--div class="online-status" style="float: right; margin-top: 5px"></div>
-                        <small style="color: #8e8e8e;">${user.lastMessage || "Нет сообщений"}</small-->
-                        <div class="mail" id='notification-${user.id}' style="display: none;">💬 <span class="notification-badge" id="unread-count-${user.id}"></span>
-                </div>`;
+                    <div>
+                    ${user.name}
+                    <!--small class="lastMessage"style="color: #8e8e8e;">${lastMessage || "Нет сообщений"}</small-->
+                    </div>
+                    <div class="online-status ${user.online_status ? 'online' : 'offline'}" ></div>
+                    
+                    <div class="mail" id='notification-${user.id}' style="display: none;">💬<span class="notification-badge" id="unread-count-${user.id}"></span>
+                    </div>
+                    `;
                 userList.appendChild(userElement);
                 checkUnreadCountMessages(user.id);
             }
@@ -103,10 +111,59 @@ async function fetchUsers() {
 
 
 
+async function statusOn(userId) {
+    try {
+        const response = await fetch(`/auth/user/status_on/${userId}`, { 
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ status: true }) // Пример добавления тела запроса
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
+        }
 
+        const data = await response.json();
+        console.log('Статус пользователя обновлен:', data);
+        
+    } catch (error) {
+        console.error('Ошибка обновления статуса:', error);
+    }
+}
 
+async function statusOff(userId) {
+    try {
+        const response = await fetch(`/auth/user/status_off/${userId}`, { 
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
+        }
 
+        const data = await response.json();
+        console.log('Статус пользователя обновлен:', data);
+        
+    } catch (error) {
+        console.error('Ошибка обновления статуса:', error);
+    }
+}
 
+async function checkStatus() {
+    try {
+        const response = await fetch('/auth/users/check_status');
+        
+        if (!response.ok) {
+            throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
+        }
+
+        const usersStat = await response.json();        
+        
+    } catch (error) {
+        console.error('Ошибка загрузки статусов:', error);
+    }
+}
 
 async function loadMessages(userId) {
     try {
@@ -143,15 +200,13 @@ async function sendMessage() {
         } catch (error) {
             console.error('Ошибка при отправке сообщения:', error);
         }
-
     }
-
 }
 
 // Добавление сообщения в чат
 function addMessage(text, recipient_id) {
     const messagesContainer = document.getElementById('messages');
-    messagesContainer.insertAdjacentHTML('beforeend', createMessageElement(text, recipient_id));
+    messagesContainer.insertAdjacentHTML('beforeend', createMessageElement(text, recipient_id, 0));
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
@@ -160,9 +215,10 @@ function addMessage(text, recipient_id) {
 function createMessageElement(text, recipient_id, createdAt) {
     const date = new Date(createdAt);
     const hours = date.getHours();
-    const minutes = date.getMinutes();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
 // Запуск опроса новых сообщений
     const messageClass = currentUserId === recipient_id ? 'other-message' : 'my-message';
+    //if (text.include(avatars)) {return `<div class="message ${messageClass}" style="font-size: 30px;">${text}<div class="createdAt">${hours+5}:${minutes}</div></div>`;}
     return `<div class="message ${messageClass}">${text}<div class="createdAt">${hours+5}:${minutes}</div></div>`;
     }
     
@@ -235,13 +291,6 @@ async function readMessages(userId) {
     }
 }
 
-
-
-
-
-
-
-
 // Функция выхода из аккаунта
 async function logout() {
     try {
@@ -260,11 +309,13 @@ async function logout() {
     }
 }
 
+statusOff(currentUserId);
 
 // Первоначальная настройка событий нажатия на пользователей
 const friends = document.getElementById('friends-list');
 // Обновление списка пользователей
 let selectedUserId = null;
+let lastMessage = null;
 const userID = parseInt(selectedUserId, 10);
 // Эмодзи пикер
 const emojiBtn = document.querySelector('.emoji-btn');
@@ -383,6 +434,7 @@ buttons.forEach(button => {
 });
 
 
+
 async function check(){
     const response = await fetch('/auth/users');
     const users = await response.json();
@@ -394,3 +446,7 @@ async function check(){
 //check();
 document.addEventListener('DOMContentLoaded', fetchUsers);
 document.addEventListener('DOMContentLoaded', updateMess);
+window.addEventListener('beforeunload', function (event) {
+    statusOff(currentUserId);
+});
+//setInterval(() => checkStatus(),1000);

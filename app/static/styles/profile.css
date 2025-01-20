@@ -161,7 +161,7 @@ body {
 
 #avaPicker {
     display: none;
-    width: 620px;
+    width: 600px;
     resize: none;
     overflow-y: auto;
     position: fixed;
@@ -177,4 +177,5 @@ body {
     background-color: var(--primary-blue);
     border-radius: 5px;
     border-color: var(--primary-blue);
+    font-size: 26px;
 }

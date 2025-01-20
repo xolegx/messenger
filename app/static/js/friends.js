@@ -1,8 +1,4 @@
 
-const settingsBtn = document.querySelector('.settings-btn');
-const settingsMenu = document.querySelector('.settings-menu');
-const buttons = document.querySelectorAll('.set-btn');
-
 // Функция выхода из аккаунта
 async function logout() {
     try {
@@ -36,7 +32,7 @@ async function fetchUsers() {
 
                 // Устанавливаем контент с учетом аватара, имени и последнего сообщения
                 userElement.innerHTML = `
-                    <span style="font-size: 30px;">${user.avatar || "👤"}  </span>
+                    <span style="font-size: 30px;">${avatars[user.avatar] || "👤"}  </span>
                     <div style="margin-left: 10px;"> <div>${user.name}</div>
                         
                     </div><button class="add-friend-btn">+</button>
@@ -51,6 +47,14 @@ async function fetchUsers() {
         console.error('Ошибка при загрузке списка пользователей:', error);
     }
 }
+
+document.addEventListener('DOMContentLoaded', fetchUsers);
+
+const avatars = ['👩','👨','🧑','👧','👦','🧒','👶','👵','👴','🧓','👩‍🦰','👨‍🦰','👩‍🦱','👨‍🦱','👩‍🦲','👨‍🦲','👩‍🦳','👨‍🦳','👱‍♀️','👱‍♂️','👸','🤴','👳‍♀️','👳‍♂️','👲','🧔','👼','🤶','🎅','👩🏻','👨🏻','🧑🏻','👧🏻','👦🏻','🧒🏻','👶🏻','👵🏻','👴🏻','🧓🏻','👩🏻‍🦰','👨🏻‍🦰','👩🏻‍🦱','👨🏻‍🦱','👩🏻‍🦲','👨🏻‍🦲','👩🏻‍🦳','👨🏻‍🦳','👱🏻‍♀️','👱🏻‍♂️','👸🏻','🤴🏻','👳🏻‍♀️','👳🏻‍♂️','👲🏻','🧔🏻','👼🏻','🤶🏻','🎅🏻','👩🏿','👨🏿','🧑🏿','👧🏿','👦🏿','🧒🏿','👶🏿','👵🏿','👴🏿','🧓🏿','👩🏿‍🦰','👨🏿‍🦰','👩🏿‍🦱','👨🏿‍🦱','👩🏿‍🦲','👨🏿‍🦲','👩🏿‍🦳','👨🏿‍🦳','👱🏿‍♀️','👱🏿‍♂️','👸🏿','🤴🏿','👳🏿‍♀️','👳🏿‍♂️','👲🏿','🧔🏿','👼🏿','🤶🏿','🎅🏿','👤'];
+
+const settingsBtn = document.querySelector('.settings-btn');
+const settingsMenu = document.querySelector('.settings-menu');
+const buttons = document.querySelectorAll('.set-btn');
 
 document.getElementById('main').addEventListener('click', function() {
     window.location.href = '/chat';
@@ -101,16 +105,19 @@ addFriendButtons.forEach(button => {
 // Search functionality
 const searchInput = document.querySelector('.search-input');
 const userItems = document.querySelectorAll('.user-item');
-searchInput.addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    userItems.forEach(item => {
+async function search() {
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        userItems.forEach(item => {
 
-        const userName = item.textContent.toLowerCase().trim();
-        if (userName.includes(searchTerm)) {
-            item.style.display = 'flex';
-        } else {
-            item.style.display = 'none';
-        }
+            const userName = item.textContent.toLowerCase().trim();
+            if (userName.includes(searchTerm)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
     });
-});
+}
+document.addEventListener('DOMContentLoaded', search);
 

@@ -238,6 +238,7 @@ body {
 
 .mail {
     position: absolute;
+    padding: 10px;
     right: 0;
     transform: translateX(-30%);
 }
@@ -259,6 +260,37 @@ body {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background-color: var(--online-color);
     margin-left: 10px;
 }
+
+.online {
+    background-color: green; /* Цвет для онлайн статуса */
+}
+
+.offline {
+    background-color: gray; /* Цвет для оффлайн статуса */
+}
+
+.notification-badge {
+    position: fixed;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: rgba(255,0,0,0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 10px;
+    float: right;
+    bottom: 10px;
+    right: 8px
+}
+
+.lastMessage {
+    font-size: 12px;
+        display: flex;
+    float: bottom;
+    bottom: 10px;
+
+    }

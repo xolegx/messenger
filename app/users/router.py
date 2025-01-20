@@ -76,18 +76,18 @@ async def get_profile(request: Request, user_data: User = Depends(get_current_us
 
 
 @router.get("/friends")
-async def get_profile(request: Request, user_data: User = Depends(get_current_user)):
+async def get_friends(request: Request, user_data: User = Depends(get_current_user)):
     users_all = await UsersCORE.find_all()
     return templates.TemplateResponse("friends.html", {"request": request, "user": user_data, 'users_all': users_all})
 
 
 @router.get("/groups")
-async def get_profile(request: Request):
+async def get_groups(request: Request):
     return templates.TemplateResponse("groups.html", {"request": request})
 
 
 @router.get("/files")
-async def get_profile(request: Request):
+async def get_files(request: Request):
     return templates.TemplateResponse("files.html", {"request": request})
 
 
@@ -147,3 +147,51 @@ async def change_department(request: ChangeDepartmentRequest, current_user: User
         session.add(current_user)
         await session.commit()
     return {"detail": "Отдел успешно изменен"}
+
+
+@router.put("/user/status_on/{user_id}")
+async def status_on(user_id: int):
+    async with async_session_maker() as session:
+        result = await session.execute(
+            select(User).filter(User.id == user_id)
+        )
+        user = result.scalars().first()
+
+        if user is None:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user.online_status = True
+        await session.commit()  # Сохраняем изменения
+
+
+@router.put("/user/status_off/{user_id}")
+async def status_off(user_id: int):
+    async with async_session_maker() as session:
+        result = await session.execute(
+            select(User).filter(User.id == user_id)
+        )
+        user = result.scalars().first()
+
+        if user is None:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user.online_status = False
+        await session.commit()  # Сохраняем изменения
+
+
+@router.get("/users/check_status/")
+async def check_status():
+    async with async_session_maker() as session:
+        result = await session.execute(select(User))
+        users = result.scalars().all()  # Получаем всех пользователей
+
+        if not users:
+            raise HTTPException(status_code=404, detail="No users found")
+
+        # Формируем ответ с информацией о пользователях
+        user_statuses = [
+            {"id": user.id, "name": user.name, "online_status": user.online_status}
+            for user in users
+        ]
+
+        return {"users": user_statuses}

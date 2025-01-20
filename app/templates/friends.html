@@ -40,17 +40,7 @@
         <input type="text" class="search-input" maxlength="20" placeholder="Поиск пользователей...">
     </div>
     <div class="user-list" id="user-list">
-        {% for chat in users_all %}
-            {% if chat.id != user.id %}
-                    <div class="user-item" data-user-id="{{ user.id }}">
-                    <span style="font-size: 30px;">{{user.avatar}}</span>
-                    <div style="margin-left: 10px;"> <div>{{chat.name}}</div>
-                        
-                    </div><button class="add-friend-btn">+</button>
-                 </div>
-               
-            {% endif %}
-        {% endfor %}    
+          
     </div>
 </div>
 <script>
