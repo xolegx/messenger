@@ -6,7 +6,6 @@ function connectWebSocket() {
 
     socket.onopen = () => {
         console.log('WebSocket соединение установлено');
-        statusOn(currentUserId);
     }
 
     socket.onmessage = (event) => {
@@ -22,17 +21,18 @@ function connectWebSocket() {
 
 // Функция выбора пользователя
 async function selectUser(userId, userName, event) {
-
     selectedUserId = userId;
     const userNametrim = userName.trim();
     const userNamesplit = userNametrim.split(' ');
     const headerName = userNamesplit.slice(1,46).join(' ');
-    document.getElementById('chat-header').innerHTML = `<span>${headerName}</span> <br> <small style="color: #8e8e8e;">${status || "offline"}</small>` ;
+    document.getElementById('chat-header').innerHTML = `<span>${headerName}</span>` ;
     document.getElementById('messageInput').disabled = false;
     document.getElementById('send-btn').disabled = false;
     const messagesContainer = document.querySelector('.messages');
     messagesContainer.style.backgroundImage = "url('/static/img/chatwall2.png')";
-
+    clearTimeout(timeoutIdSelect);
+    clearTimeout(timeoutIdAll);
+    timeoutIdSelect = setTimeout(() => {statusOff(currentUserId);}, 120000);
 
     if (!event.target.classList.contains('active')){ document.querySelectorAll('.friend').forEach(item => item.classList.remove('active'));
         event.target.classList.add('active');
@@ -44,12 +44,15 @@ async function selectUser(userId, userName, event) {
         connectWebSocket();
         startMessagePolling(userId);
         readMessages(userId);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;}}
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;}
+        statusOn(currentUserId);
+    }
 
 // Обработка нажатий на пользователя
 function addUserClickListeners() {
     document.querySelectorAll('.friend').forEach(item => {
-        item.onclick = event => selectUser(item.getAttribute('data-user-id'), item.textContent, event);
+        const userId = item.getAttribute('data-user-id');
+        item.onclick = event => selectUser(userId, item.textContent, event);
     });
 }
 
@@ -59,7 +62,7 @@ async function fetchUsers() {
         const response = await fetch('/auth/users');
         const users = await response.json();
         const userList = document.getElementById('friends-list');
-        
+        statusOn(currentUserId);
         userList.innerHTML = '';
         // Создаем элемент "Избранное" для текущего пользователя
         const favoriteElement = document.createElement('div');
@@ -100,6 +103,7 @@ async function fetchUsers() {
         //setInterval(() => {users.forEach(user => {checkUnreadMessages(user.id);});},1000);
         // Повторно добавляем обработчики событий для каждого пользователя
         addUserClickListeners();
+        
     } catch (error) {
         console.error('Ошибка при загрузке списка пользователей:', error);
     }
@@ -124,7 +128,7 @@ async function statusOn(userId) {
         }
 
         const data = await response.json();
-        console.log('Статус пользователя обновлен:', data);
+        console.log('Статус пользователя online');
         
     } catch (error) {
         console.error('Ошибка обновления статуса:', error);
@@ -143,7 +147,7 @@ async function statusOff(userId) {
         }
 
         const data = await response.json();
-        console.log('Статус пользователя обновлен:', data);
+        console.log('Статус пользователя offline');
         
     } catch (error) {
         console.error('Ошибка обновления статуса:', error);
@@ -158,7 +162,24 @@ async function checkStatus() {
             throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
         }
 
-        const usersStat = await response.json();        
+        const usersStat = await response.json();     
+        usersStat.users.forEach(user =>  {
+            if (user.id !== currentUserId) {
+                const userElement = document.querySelector(`.friend[data-user-id="${user.id}"]`);
+                if (userElement) {
+                    const statusElement = userElement.querySelector('.online-status');
+
+                    // Устанавливаем класс в зависимости от статуса
+                    if (user.online_status) {
+                        statusElement.classList.add('online');
+                        statusElement.classList.remove('offline');
+                    } else {
+                        statusElement.classList.add('offline');
+                        statusElement.classList.remove('online');
+                    }
+                }
+            }
+        });   
         
     } catch (error) {
         console.error('Ошибка загрузки статусов:', error);
@@ -182,7 +203,8 @@ async function loadMessages(userId) {
 async function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const message = messageInput.value.trim();
-
+    clearTimeout(timeoutIdSelect);
+    timeoutIdSelect = setTimeout(() => {statusOff(currentUserId);}, 120000);
     if (message && selectedUserId) {
         const payload = {recipient_id: selectedUserId, content: message};
 
@@ -309,8 +331,9 @@ async function logout() {
     }
 }
 
-statusOff(currentUserId);
 
+let timeoutIdSelect;
+let timeoutIdAll;
 // Первоначальная настройка событий нажатия на пользователей
 const friends = document.getElementById('friends-list');
 // Обновление списка пользователей
@@ -328,7 +351,7 @@ const avatars = ['👩','👨','🧑','👧','👦','🧒','👶','👵','👴',
 let socket = null;
 let messagePollingInterval = null;
 
-let status = null;
+let status = true;
 
 const fileBtn = document.querySelector('.file-btn');
 const fileInput = document.querySelector('.file-input');
@@ -449,4 +472,5 @@ document.addEventListener('DOMContentLoaded', updateMess);
 window.addEventListener('beforeunload', function (event) {
     statusOff(currentUserId);
 });
-//setInterval(() => checkStatus(),1000);
+timeoutIdAll = setTimeout(() => {statusOff(currentUserId);}, 120000);
+setInterval(() => checkStatus(),5000);

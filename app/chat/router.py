@@ -87,7 +87,7 @@ async def mark_as_read(message_id: int):
 
 
 @router.get("/messages/unread_count/{user_id}")
-async def count_unread_count_messages(user_id: int, user_data: User = Depends(get_current_user)):
+async def count_unread_messages(user_id: int, user_data: User = Depends(get_current_user)):
     async with async_session_maker() as session:
         result = await session.execute(
             select(Message).filter(
@@ -103,7 +103,7 @@ async def count_unread_count_messages(user_id: int, user_data: User = Depends(ge
 
 
 @router.put("/messages/read/{user_id}")
-async def count_unread_count_messages(user_id: int, user_data: User = Depends(get_current_user)):
+async def read_messages(user_id: int, user_data: User = Depends(get_current_user)):
     async with async_session_maker() as session:
         result = await session.execute(
             select(Message).filter(
