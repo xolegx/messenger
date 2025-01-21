@@ -86,20 +86,27 @@ async def mark_as_read(message_id: int):
     return message
 
 
-@router.get("/messages/unread_count/{user_id}")
-async def count_unread_messages(user_id: int, user_data: User = Depends(get_current_user)):
+@router.get("/messages/unread_counts/")
+async def count_unread_messages(user_data: User = Depends(get_current_user)):
     async with async_session_maker() as session:
+        # Получаем все сообщения, которые не прочитаны
         result = await session.execute(
             select(Message).filter(
                 Message.recipient_id == user_data.id,
-                Message.sender_id == user_id,
                 Message.is_read == False
             )
         )
         unread_messages = result.scalars().all()  # Получаем все непрочитанные сообщения
-        count = len(unread_messages)  # Подсчитываем количество непрочитанных сообщений
 
-    return {"unread_count": count}
+        # Создаем словарь для хранения количества непрочитанных сообщений по пользователям
+        unread_count_by_user = {}
+        for message in unread_messages:
+            sender_id = message.sender_id
+            if sender_id not in unread_count_by_user:
+                unread_count_by_user[sender_id] = 0
+            unread_count_by_user[sender_id] += 1
+
+    return {"unread_counts": unread_count_by_user}
 
 
 @router.put("/messages/read/{user_id}")
