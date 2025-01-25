@@ -1,8 +1,8 @@
-"""init
+"""'add_files'
 
-Revision ID: 5ff63d1e0801
+Revision ID: 2bab85a3b8d5
 Revises: 
-Create Date: 2025-01-19 21:20:20.724514
+Create Date: 2025-01-25 12:19:42.245601
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '5ff63d1e0801'
+revision: str = '2bab85a3b8d5'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -48,6 +48,7 @@ def upgrade() -> None:
     sa.Column('recipient_id', sa.Integer(), nullable=False),
     sa.Column('content', sa.Text(), nullable=False),
     sa.Column('is_read', sa.Boolean(), nullable=False),
+    sa.Column('is_sticker', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.ForeignKeyConstraint(['recipient_id'], ['users.id'], ),
