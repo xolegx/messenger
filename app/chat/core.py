@@ -4,6 +4,8 @@ from app.chat.models import Message
 from app.database import async_session_maker
 from app.config import get_auth_data
 from cryptography.fernet import Fernet
+from typing import List
+from app.files.models import File
 
 
 class MessagesCORE(BaseCORE):
@@ -34,6 +36,19 @@ class MessagesCORE(BaseCORE):
                 message.content = decrypt_message(message.content)
             return messages
 
+    @classmethod
+    async def save_message(cls, content: str, sender_id: int, recipient_id: int, is_sticker: bool = False,
+                           file_ids: List[int] = None):
+        encrypted_content = encrypt_message(content) if content else None
+        async with async_session_maker() as session:
+            message = cls.model(content=encrypted_content, sender_id=sender_id, recipient_id=recipient_id,
+                                is_sticker=is_sticker)
+            session.add(message)
+            if file_ids:
+                files = await session.execute(select(File).where(File.id.in_(file_ids)))
+                message.files.extend(files.scalars().all())
+            await session.commit()
+
 
 auth_data = get_auth_data()
 crypt_key = auth_data['crypt_key']  # Получаем ключ из данных аутентификации
@@ -41,8 +56,10 @@ crypt_key = auth_data['crypt_key']  # Получаем ключ из данны�
 # Создаем экземпляр Fernet с вашим ключом
 cipher_suite = Fernet(crypt_key)
 
-def encrypt_message(message: str) ->  str:
+
+def encrypt_message(message: str) -> str:
     return cipher_suite.encrypt(message.encode()).decode()  # Шифруем сообщение
 
-def decrypt_message(encrypted_message: str) ->  str:
+
+def decrypt_message(encrypted_message: str) -> str:
     return cipher_suite.decrypt(encrypted_message.encode()).decode()  # Расшифровываем сообщение

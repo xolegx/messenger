@@ -13,6 +13,7 @@ from app.database import Base, database_url
 from app.users.models import User
 from app.chat.models import Message
 from app.friends.models import Friend
+from app.files.models import File
 
 config = context.config
 config.set_main_option("sqlalchemy.url", database_url)

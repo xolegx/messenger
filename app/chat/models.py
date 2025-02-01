@@ -13,6 +13,7 @@ class Message(Base):
     content: Mapped[str] = mapped_column(Text)
     is_read: Mapped[bool] = mapped_column(Boolean, default=False)
     is_sticker: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_file: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 files = relationship("File", back_populates="messages")

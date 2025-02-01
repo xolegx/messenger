@@ -113,9 +113,6 @@ async function fetchUsers() {
     }
 }
 
-// Загрузка сообщений
-
-
 
 
 
@@ -200,7 +197,6 @@ async function checkUnreadCountMessages() {
         const notification = document.getElementById(`notification-${userId}`);
         const unreadCountEl = document.getElementById(`unread-count-${userId}`);
         const userElement = document.querySelector(`.friend[data-user-id="${userId}"]`);
-
         
         if (userElement && userElement.classList.contains('active')) {
             readMessages(userId);
@@ -272,11 +268,14 @@ async function sendMessage() {
 }
 
 // Добавление сообщения в чат
-function addMessage(text, recipient_id) {
+
+function addMessage(text, recipient_id, isFile = false) {
     const messagesContainer = document.getElementById('messages');
-    messagesContainer.insertAdjacentHTML('beforeend', createMessageElement(text, recipient_id, 0));
+    const messageContent = isFile ? `<a href="${text}" target="_blank">📎 ${text}</a>` : text;
+    messagesContainer.insertAdjacentHTML('beforeend', createMessageElement(messageContent, recipient_id, 0));
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
+
 
 // Создание HTML элемента сообщения
 
@@ -284,9 +283,7 @@ function createMessageElement(text, recipient_id, createdAt) {
     const date = new Date(createdAt);
     const hours = date.getHours();
     const minutes = date.getMinutes().toString().padStart(2, '0');
-// Запуск опроса новых сообщений
     const messageClass = currentUserId === recipient_id ? 'other-message' : 'my-message';
-    //if (text.include(avatars)) {return `<div class="message ${messageClass}" style="font-size: 30px;">${text}<div class="createdAt">${hours+5}:${minutes}</div></div>`;}
     return `<div class="message ${messageClass}">${text}<div class="createdAt">${hours+5}:${minutes}</div></div>`;
     }
     
@@ -312,6 +309,9 @@ async function logout() {
         console.error('Ошибка при выполнении запроса:', error);
     }
 }
+
+
+
 
 
 let timeoutIdSelect;
@@ -398,20 +398,37 @@ fileBtn.addEventListener('click', () => {
     fileInput.click();
 });
 
-fileInput.addEventListener('change', (e) => {
+
+fileInput.addEventListener('change', async (e) => {
     const files = Array.from(e.target.files);
-    files.forEach(file => {
-        const messageElement = document.createElement('div');
-        messageElement.className = 'message my-message';
-        messageElement.innerHTML = `
-            <div class="file-preview">
-                📎 ${file.name} (${(file.size / 1024).toFixed(2)} KB)
-            </div>
-        `;
-        document.querySelector('.messages').appendChild(messageElement);
+    
+    files.forEach(async file => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('message_id', messageId || null); // Use null if messageId is not available
+        formData.append('sender_id', currentUserId || null);
+        formData.append('recipient_id', selectedUserId || null);
+
+
+        try {
+            const response = await fetch('/files/upload/', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const result = await response.json();
+            if (result.status === 'ok') {
+                console.log('Файл успешно загружен:', result.filename);
+                addMessage(`Файл загружен: ${result.filename}`, selectedUserId, true);
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки файла:', error);
+        }
     });
-    fileInput.value = '';
+
+    fileInput.value = ''; // Сбрасываем значение input
 });
+
 
     // Настройки
 const buttons = document.querySelectorAll('.set-btn');

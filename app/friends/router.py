@@ -44,7 +44,7 @@ async def remove_friend(friend_id: int, db: AsyncSession = Depends(async_session
     return {"message": "Friend removed successfully"}
 
 
-@router.get("/friends")
+@router.get("/friends/")
 async def get_friends(db: AsyncSession = Depends(async_session_maker), current_user: User = Depends(get_current_user)):
     # Получение списка друзей
     result = await db.execute(select(Friend).filter(Friend.user_id == current_user.id))

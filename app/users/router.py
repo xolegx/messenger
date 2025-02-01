@@ -60,7 +60,6 @@ async def logout_user(response: Response):
 @router.get("/users", response_model=List[SUserRead])
 async def get_users():
     users_all = await UsersCORE.find_all()
-    # Используем генераторное выражение для создания списка
     return [{'id': user.id, 'name': user.name, 'avatar': user.avatar, 'online_status': user.online_status, 'department': user.department, 'role': user.role} for user in users_all]
 
 
@@ -109,10 +108,9 @@ async def update_avatar(user_id: int, new_avatar: int):
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
 
-        # Обновляем аватар
         user.avatar = new_avatar
-        await session.commit()  # Сохраняем изменения
-        await session.refresh(user)  # Обновляем информацию о пользователе
+        await session.commit()
+        await session.refresh(user)
 
         return {"id": user.id, "avatar": user.avatar}
 
@@ -161,7 +159,7 @@ async def status_on(user_id: int):
             raise HTTPException(status_code=404, detail="User not found")
 
         user.online_status = True
-        await session.commit()  # Сохраняем изменения
+        await session.commit()
 
 
 @router.put("/user/status_off/{user_id}")
@@ -176,19 +174,18 @@ async def status_off(user_id: int):
             raise HTTPException(status_code=404, detail="User not found")
 
         user.online_status = False
-        await session.commit()  # Сохраняем изменения
+        await session.commit()
 
 
 @router.get("/users/check_status/")
 async def check_status():
     async with async_session_maker() as session:
         result = await session.execute(select(User))
-        users = result.scalars().all()  # Получаем всех пользователей
+        users = result.scalars().all()
 
         if not users:
             raise HTTPException(status_code=404, detail="No users found")
 
-        # Формируем ответ с информацией о пользователях
         user_statuses = [
             {"id": user.id, "name": user.name, "online_status": user.online_status}
             for user in users
