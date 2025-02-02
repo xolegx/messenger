@@ -1,4 +1,3 @@
-
 const settingsBtn = document.querySelector('.settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
 const buttons = document.querySelectorAll('.set-btn');

@@ -48,7 +48,38 @@ async function fetchUsers() {
     }
 }
 
+
+async function fetchFriends() {
+    try {
+        const response = await fetch('/friends');
+        const friends = await response.json();
+        //console.log(friends)
+        const friendList = document.getElementById('friends-list');
+        friendList.innerHTML = '';
+        friends.forEach(friend => {
+            if (friend.id !== currentUserId) {
+                const friendElement = document.createElement('div');
+                friendElement.classList.add('friend-item');
+                friendElement.setAttribute('data-friend-id', friend.id);
+                friendElement.innerHTML = `
+                    <span style="font-size: 30px;">${avatars[friend.avatar] || "👤"}  </span>
+                    <div style="margin-left: 10px;"> <div>${friend.name}</div>
+                        
+                    </div><button class="del-friend-btn">-</button>
+                `;
+                friendList.appendChild(friendElement);
+            }
+        });
+
+       
+    } catch (error) {
+        console.error('Ошибка при загрузке списка пользователей:', error);
+    }
+}
+
+
 document.addEventListener('DOMContentLoaded', fetchUsers);
+document.addEventListener('DOMContentLoaded', fetchFriends);
 
 const avatars = ['👩','👨','🧑','👧','👦','🧒','👶','👵','👴','🧓','👩‍🦰','👨‍🦰','👩‍🦱','👨‍🦱','👩‍🦲','👨‍🦲','👩‍🦳','👨‍🦳','👱‍♀️','👱‍♂️','👸','🤴','👳‍♀️','👳‍♂️','👲','🧔','👼','🤶','🎅','👩🏻','👨🏻','🧑🏻','👧🏻','👦🏻','🧒🏻','👶🏻','👵🏻','👴🏻','🧓🏻','👩🏻‍🦰','👨🏻‍🦰','👩🏻‍🦱','👨🏻‍🦱','👩🏻‍🦲','👨🏻‍🦲','👩🏻‍🦳','👨🏻‍🦳','👱🏻‍♀️','👱🏻‍♂️','👸🏻','🤴🏻','👳🏻‍♀️','👳🏻‍♂️','👲🏻','🧔🏻','👼🏻','🤶🏻','🎅🏻','👩🏿','👨🏿','🧑🏿','👧🏿','👦🏿','🧒🏿','👶🏿','👵🏿','👴🏿','🧓🏿','👩🏿‍🦰','👨🏿‍🦰','👩🏿‍🦱','👨🏿‍🦱','👩🏿‍🦲','👨🏿‍🦲','👩🏿‍🦳','👨🏿‍🦳','👱🏿‍♀️','👱🏿‍♂️','👸🏿','🤴🏿','👳🏿‍♀️','👳🏿‍♂️','👲🏿','🧔🏿','👼🏿','🤶🏿','🎅🏿','👤'];
 

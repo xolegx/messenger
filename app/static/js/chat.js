@@ -399,35 +399,7 @@ fileBtn.addEventListener('click', () => {
 });
 
 
-fileInput.addEventListener('change', async (e) => {
-    const files = Array.from(e.target.files);
-    
-    files.forEach(async file => {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('message_id', messageId || null); // Use null if messageId is not available
-        formData.append('sender_id', currentUserId || null);
-        formData.append('recipient_id', selectedUserId || null);
 
-
-        try {
-            const response = await fetch('/files/upload/', {
-                method: 'POST',
-                body: formData,
-            });
-
-            const result = await response.json();
-            if (result.status === 'ok') {
-                console.log('Файл успешно загружен:', result.filename);
-                addMessage(`Файл загружен: ${result.filename}`, selectedUserId, true);
-            }
-        } catch (error) {
-            console.error('Ошибка загрузки файла:', error);
-        }
-    });
-
-    fileInput.value = ''; // Сбрасываем значение input
-});
 
 
     // Настройки
