@@ -4,6 +4,35 @@ const settingsBtn = document.querySelector('.settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
 const buttons = document.querySelectorAll('.set-btn');
 
+async function fetchFriends() {
+    try {
+        const response = await fetch('/friends');
+        const friends = await response.json();
+        //console.log(friends)
+        const friendList = document.getElementById('friend-list');
+        friendList.innerHTML = '';
+        friends.forEach(friend => {
+            if (friend.id !== currentUserId) {
+                const friendElement = document.createElement('div');
+                friendElement.classList.add('friend-item');
+                friendElement.setAttribute('data-friend-id', friend.id);
+                friendElement.innerHTML = `
+                    <span style="font-size: 30px;">${avatars[friend.avatar] || "👤"}  </span>
+                    <div style="margin-left: 10px;"> <div>${friend.name}</div>
+                        
+                    </div><button class="add-to-group-btn">+</button>
+                `;
+                friendList.appendChild(friendElement);
+            }
+        });
+
+       
+    } catch (error) {
+        console.error('Ошибка при загрузке списка пользователей:', error);
+    }
+}
+const avatars = ['👩','👨','🧑','👧','👦','🧒','👶','👵','👴','🧓','👩‍🦰','👨‍🦰','👩‍🦱','👨‍🦱','👩‍🦲','👨‍🦲','👩‍🦳','👨‍🦳','👱‍♀️','👱‍♂️','👸','🤴','👳‍♀️','👳‍♂️','👲','🧔','👼','🤶','🎅','👩🏻','👨🏻','🧑🏻','👧🏻','👦🏻','🧒🏻','👶🏻','👵🏻','👴🏻','🧓🏻','👩🏻‍🦰','👨🏻‍🦰','👩🏻‍🦱','👨🏻‍🦱','👩🏻‍🦲','👨🏻‍🦲','👩🏻‍🦳','👨🏻‍🦳','👱🏻‍♀️','👱🏻‍♂️','👸🏻','🤴🏻','👳🏻‍♀️','👳🏻‍♂️','👲🏻','🧔🏻','👼🏻','🤶🏻','🎅🏻','👩🏿','👨🏿','🧑🏿','👧🏿','👦🏿','🧒🏿','👶🏿','👵🏿','👴🏿','🧓🏿','👩🏿‍🦰','👨🏿‍🦰','👩🏿‍🦱','👨🏿‍🦱','👩🏿‍🦲','👨🏿‍🦲','👩🏿‍🦳','👨🏿‍🦳','👱🏿‍♀️','👱🏿‍♂️','👸🏿','🤴🏿','👳🏿‍♀️','👳🏿‍♂️','👲🏿','🧔🏿','👼🏿','🤶🏿','🎅🏿','👤'];
+
 // Функция выхода из аккаунта
 async function logout() {
     try {
@@ -92,3 +121,4 @@ addToGroupButtons.forEach(button => {
         this.style.opacity = '0.5';
     });
 });
+document.addEventListener('DOMContentLoaded', fetchFriends);

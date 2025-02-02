@@ -81,8 +81,8 @@ async def get_friends(request: Request, user_data: User = Depends(get_current_us
 
 
 @router.get("/groups")
-async def get_groups(request: Request):
-    return templates.TemplateResponse("groups.html", {"request": request})
+async def get_groups(request: Request, user_data: User = Depends(get_current_user)):
+    return templates.TemplateResponse("groups.html", {"request": request, "user": user_data})
 
 
 @router.get("/files")

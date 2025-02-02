@@ -35,8 +35,12 @@ async function fetchUsers() {
                     <span style="font-size: 30px;">${avatars[user.avatar] || "👤"}  </span>
                     <div style="margin-left: 10px;"> <div>${user.name}</div>
                         
-                    </div><button class="add-friend-btn">+</button>
+                    </div><button class="add-friend-btn" data-user-id="${user.id}">+</button>
                 `;
+                const addButton = userElement.querySelector('.add-friend-btn');
+                addButton.addEventListener('click', async () =>  {
+                    await addFriend(user.id);
+                });
                 //userElement.innerHTML += `<span class="mail">💬</span>`;
                 userList.appendChild(userElement);
             }
@@ -65,15 +69,61 @@ async function fetchFriends() {
                     <span style="font-size: 30px;">${avatars[friend.avatar] || "👤"}  </span>
                     <div style="margin-left: 10px;"> <div>${friend.name}</div>
                         
-                    </div><button class="del-friend-btn">-</button>
+                    </div><button class="del-friend-btn" data-friend-id="${friend.id}">-</button>
                 `;
+                const addButton = friendElement.querySelector('.del-friend-btn');
+                addButton.addEventListener('click', async () =>  {
+                    await delFriend(friend.id);
+                });
                 friendList.appendChild(friendElement);
             }
         });
 
        
     } catch (error) {
-        console.error('Ошибка при загрузке списка пользователей:', error);
+        console.error('Ошибка при загрузке списка друзей:', error);
+    }
+}
+
+
+async function addFriend(user_id) {
+    try {
+        const response = await fetch(`/friends/add/${user_id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Не удалось добавить друга');
+        }
+        const result = await response.json();
+        fetchFriends();
+        fetchUsers();
+    } catch (error) {
+        console.error('Ошибка при добавлении друга:', error);
+    }
+}
+
+
+async function delFriend(friends_id) {
+    try {
+        const response = await fetch(`/friends/remove/${friends_id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Не удалось удалить друга');
+        }
+        const result = await response.json();
+        fetchFriends();
+        fetchUsers();
+    } catch (error) {
+        console.error('Ошибка при удалении друга:', error);
     }
 }
 
@@ -85,7 +135,7 @@ const avatars = ['👩','👨','🧑','👧','👦','🧒','👶','👵','👴',
 
 const settingsBtn = document.querySelector('.settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
-const buttons = document.querySelectorAll('.set-btn');
+const buttonSet = document.querySelectorAll('.set-btn');
 
 document.getElementById('main').addEventListener('click', function() {
     window.location.href = '/chat';
@@ -101,7 +151,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-buttons.forEach(button => {
+buttonSet.forEach(button => {
     button.addEventListener('click', async () => {
         const url = button.getAttribute('data-url'); // Получаем URL из атрибута data-url
         if (button.textContent === '🚪 Выйти') {

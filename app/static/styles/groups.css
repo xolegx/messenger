@@ -23,8 +23,8 @@ body {
     display: flex;
     overflow-x: hidden;
 }
+
 .sidebar {
-    width: 300px;
     background-color: var(--secondary-blue);
     border-right: 1px solid #3c3c3c;
     display: flex;
@@ -32,13 +32,14 @@ body {
 }
 
 .settings {
-    padding: 15px;
     background-color: var(--primary-blue);
     height: 60px;
+    width: 300px;
 }
 
 .settings-btn {
     background: none;
+    padding: 15px;
     border: none;
     color: white;
     cursor: pointer;
@@ -83,6 +84,7 @@ body {
 .settings-menu button:hover {
     background-color: var(--hover-color);
 }
+
 
 .groups-list {
     flex-grow: 1;
@@ -140,7 +142,7 @@ body {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
 }
 
 .chat-header {
@@ -148,45 +150,60 @@ body {
     background-color: var(--primary-blue);
     height: 60px;
 }
+
 .main {
     background-image: url('/static/img/12.png');
-    background-size: cover; 
+    background-size: cover;
     background-color: var(--primary-blue);
     width: 40px; 
-    height: 40px; 
-    border: none; 
+    height: 40px;
+    border: none;
     cursor: pointer; 
-    margin-left: 200px;
     float: right;
+    margin: 10px;
 }
 
-.friend-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.add-to-group-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 24px;
+    cursor: pointer;
+    border-radius: 5px;
+    padding: 5px 10px;
+    position: absolute;
+    right: 20px;
+}
+
+.add-to-group-btn:hover {
+    background-color: var(--hover-color);
 }
 
 .friend-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 15px;
+    padding: 5px;
     background-color: var(--primary-blue);
     border-radius: 8px;
     margin-left: 15px;
+    position: relative;
+    margin-bottom: 10px;
+    cursor: pointer;
 }
 
-.friend-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.friend-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    max-width: 715px;
+
 }
 
 .friend-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: var(--secondary-blue);
+    background-color: var(--primary-blue);
+    margin-right: 10px;
     position: relative;
 }
 

@@ -64,7 +64,7 @@ function addUserClickListeners() {
 // Отрисовка пользователей
 async function fetchUsers() {
     try {
-        const response = await fetch('/auth/users');
+        const response = await fetch('/friends');
         const users = await response.json();
         const userList = document.getElementById('friends-list');
         statusOn(currentUserId);

@@ -22,19 +22,7 @@
         <button class="main" id="main"></button>
     </div>
     <div class="groups-list">
-        <button class="create-group-btn">Создать группу</button>
-        <div class="group-item">
-            <div class="group-avatar">G1</div>
-            <span>Группа 1</span>
-        </div>
-        <div class="group-item">
-            <div class="group-avatar">G2</div>
-            <span>Группа 2</span>
-        </div>
-        <div class="group-item">
-            <div class="group-avatar">G3</div>
-            <span>Группа 3</span>
-        </div>
+        <button class="create-group-btn">Создать группу</button>       
     </div>
 </div>
 
@@ -42,35 +30,13 @@
     <div class="chat-header">
         <h3>Добавить друзей в группу</h3>
     </div>
-    <div class="friend-list">
-        <div class="friend-item">
-            <div class="friend-info">
-                <div class="friend-avatar">
-                    <div class="online-status"></div>
-                </div>
-                <span>Друг 1</span>
-            </div>
-            <button class="add-to-group-btn">+</button>
-        </div>
-        <div class="friend-item">
-            <div class="friend-info">
-                <div class="friend-avatar"></div>
-                <span>Друг 2</span>
-            </div>
-            <button class="add-to-group-btn">+</button>
-        </div>
-        <div class="friend-item">
-            <div class="friend-info">
-                <div class="friend-avatar">
-                    <div class="online-status"></div>
-                </div>
-                <span>Друг 3</span>
-            </div>
-            <button class="add-to-group-btn">+</button>
-        </div>
+    <div class="friend-list" id="friend-list">
+        
     </div>
 </div>
-
+<script>
+const currentUserId = parseInt("{{ user.id }}", 10);
+</script>
 <script src="/static/js/groups.js"></script>
 </body>
 </html>

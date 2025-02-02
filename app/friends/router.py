@@ -16,15 +16,19 @@ async def add_friend(friend_id: int, current_user: User = Depends(get_current_us
     async with async_session_maker() as session:
         result = await session.execute(select(User).filter(User.id == friend_id))
         friend = result.scalars().first()
-
         if not friend:
             raise HTTPException(status_code=404, detail="Friend not found")
-
-        # Добавление в таблицу друзей
+        # Проверяем, существует ли уже дружеская связь
+        friendship_check = await session.execute(
+            select(Friend).filter(
+                (Friend.user_id == current_user.id) & (Friend.friend_id == friend_id) |
+                (Friend.user_id == friend_id) & (Friend.friend_id == current_user.id)))
+        existing_friendship = friendship_check.scalars().first()
+        if existing_friendship:
+            raise HTTPException(status_code=400, detail="Friendship already exists")
         new_friendship = Friend(user_id=current_user.id, friend_id=friend_id)
         session.add(new_friendship)
         await session.commit()
-
         return {"message": "Friend added successfully"}
 
 
@@ -32,15 +36,14 @@ async def add_friend(friend_id: int, current_user: User = Depends(get_current_us
 async def remove_friend(friend_id: int, current_user: User = Depends(get_current_user)):
     async with async_session_maker() as session:
         friendship = await session.execute(
-            select(Friend).filter(Friend.user_id == current_user.id, Friend.friend_id == friend_id))
+            select(Friend).filter(
+                (Friend.user_id == current_user.id) & (Friend.friend_id == friend_id) |
+                (Friend.user_id == friend_id) & (Friend.friend_id == current_user.id)))
         friendship_to_delete = friendship.scalars().first()
-
         if not friendship_to_delete:
             raise HTTPException(status_code=404, detail="Friendship not found")
-
         await session.delete(friendship_to_delete)
         await session.commit()
-
     return {"message": "Friend removed successfully"}
 
 
@@ -49,10 +52,8 @@ async def get_friends(current_user: User = Depends(get_current_user)):
     friend_ids = set()
     async with async_session_maker() as session:
         result = await session.execute(
-            select(Friend).filter(or_(Friend.user_id == current_user.id, Friend.friend_id == current_user.id))
-        )
+            select(Friend).filter(or_(Friend.user_id == current_user.id, Friend.friend_id == current_user.id)))
         friendships = result.scalars().all()
-
         for friendship in friendships:
             if friendship.user_id != current_user.id:
                 friend_ids.add(friendship.user_id)
