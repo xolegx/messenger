@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 alert("Регистрация прошла успешно");
+                setTimeout(() => {location.reload();}, 500);
             } else {
                 const error = await response.json();
                 alert(error.detail);

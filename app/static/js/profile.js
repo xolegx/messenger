@@ -1,4 +1,3 @@
-// Функция выхода из аккаунта
 async function logout() {
     try {
         const response = await fetch('/auth/logout', {
@@ -17,8 +16,7 @@ async function logout() {
 }
 
 function setAva(avatar) {
-    // Отправка запроса на сервер для обновления аватара
-    fetch(`/auth/users/${currentUserId}/avatar?new_avatar=${avatar}`, { // Убедитесь, что вы передаете правильные параметры
+    fetch(`/auth/users/${currentUserId}/avatar?new_avatar=${avatar}`, { 
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -31,8 +29,7 @@ function setAva(avatar) {
         return response.json();
     })
     .then(data =>  {
-        // Обновляем отображение аватара на странице
-        avatarEl.textContent = avatars[data.avatar]; // Здесь предполагается, что сервер возвращает объект с полем avatar
+        avatarEl.textContent = avatars[data.avatar]; 
     })
     .catch(error =>  {
         console.error('Ошибка:', error);
@@ -82,28 +79,25 @@ async function changeName() {
     const newName = document.getElementById('newName').value;
     const messageDiv = document.getElementById('nameChangeMessage');
 
-    // Проверка на заполнение поля
     if (!newName) {
         messageDiv.textContent = 'Пожалуйста, введите новое имя.';
         return;
     }
 
     try {
-        const response = await fetch('/auth/change-name', { // Убедитесь, что путь соответствует вашему API
+        const response = await fetch('/auth/change-name', { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ new_name: newName }), // Отправляем новое имя
+            body: JSON.stringify({ new_name: newName }), 
         });
 
         if (!response.ok) {
             const errorData = await response.json();
             console.log(errorData);
-            messageDiv.textContent = `Ошибка: ${errorData.detail}`;
+            messageDiv.textContent = `${errorData.detail}`;
         } else {
-            messageDiv.textContent = 'Имя успешно изменено.';
-            // Обновите отображаемое имя на странице, если это необходимо
-            // Например, если у вас есть элемент, который показывает текущее имя:
-            // document.getElementById('currentUserName').textContent = newName;
+            messageDiv.textContent = 'Имя успешно изменено!';
+  
         }
     } catch (error) {
         console.error('Ошибка смены имени:', error);
@@ -115,7 +109,6 @@ async function changeDepartment() {
     const newDepartment = document.getElementById('newDepartment').value;
     const messageDiv = document.getElementById('departmentChangeMessage');
 
-    // Проверка на заполнение поля
     if (!newDepartment) {
         messageDiv.textContent = 'Пожалуйста, введите новый отдел.';
         return;
@@ -125,7 +118,7 @@ async function changeDepartment() {
         const response = await fetch('/auth/change-department', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ new_department: newDepartment }), // Отправляем новый отдел
+            body: JSON.stringify({ new_department: newDepartment }), 
         });
 
         if (!response.ok) {
@@ -134,9 +127,6 @@ async function changeDepartment() {
             messageDiv.textContent = `Ошибка: ${errorData.detail}`;
         } else {
             messageDiv.textContent = 'Отдел успешно изменен.';
-            // Обновите отображаемый отдел на странице, если это необходимо
-            // Например, если у вас есть элемент, который показывает текущий отдел:
-            // document.getElementById('currentUserDepartment').textContent = newDepartment;
         }
     } catch (error) {
         console.error('Ошибка смены отдела:', error);

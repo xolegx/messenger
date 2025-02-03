@@ -76,7 +76,6 @@ body {
     color: var(--text-color);
     text-align: left;
     cursor: pointer;
-
 }
 
 .settings-menu button:hover {
@@ -125,7 +124,6 @@ body {
     text-align: left;
     padding-left: 15px;
     padding-right: 15px;
-
 }
 
 .profile-button.danger:hover {
@@ -169,7 +167,6 @@ body {
     padding: 10px;
     z-index: 1000;
     border-radius: 10px;
-
 }
 
 #avaPicker .ava-button {

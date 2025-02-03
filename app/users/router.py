@@ -25,8 +25,10 @@ async def get_categories(request: Request):
 
 @router.post("/register/")
 async def register_user(user_data: SUserRegister) -> dict:
-    user = await UsersCORE.find_one_or_none(email=user_data.email)
-    if user:
+    user_name = await UsersCORE.find_one_or_none(name=user_data.name)
+    user_email = await UsersCORE.find_one_or_none(email=user_data.email)
+
+    if user_email or user_name:
         raise UserAlreadyExistsException
 
     if user_data.password != user_data.password_check:
@@ -131,6 +133,10 @@ async def change_password(request: ChangePasswordRequest, current_user: User = D
 
 @router.post("/change-name")
 async def change_name(request: ChangeNameRequest, current_user: User = Depends(get_current_user)):
+    existing_user = await UsersCORE.find_one_or_none(name=request.new_name)
+    if existing_user:
+        raise UserAlreadyExistsException
+
     current_user.name = request.new_name  # Обновляем имя пользователя
     async with async_session_maker() as session:
         session.add(current_user)
