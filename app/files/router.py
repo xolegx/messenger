@@ -1,5 +1,6 @@
 import os
 from fastapi import APIRouter, UploadFile, Depends, HTTPException
+from fastapi.responses import FileResponse
 from typing import List
 from sqlalchemy.future import select
 from app.database import async_session_maker
@@ -37,14 +38,7 @@ async def upload_file(file: UploadFile,
         await session.commit()
         await session.refresh(db_file)
 
-        return {
-            'id': db_file.id,
-            'filename': db_file.filename,
-            'file_url': db_file.file_url,
-            'message_id': db_file.message_id,
-            'status': 'ok',
-            'msg': 'File uploaded successfully!'
-        }
+        return 'File uploaded successfully!'
 
 
 @router.get("/", response_model=List[FileRead])
@@ -55,10 +49,15 @@ async def get_files(current_user: User = Depends(get_current_user)):
         return files
 
 
-@router.get("/download-file/{file_name}")
-async def download_file(file_name: str):
-    file_path = os.path.join(UPLOAD_DIRECTORY, file_name)
+@router.get("/download-file/{file_id}")
+async def download_file(file_id: int, current_user: User = Depends(get_current_user)):
+    async with async_session_maker() as session:
+        db_file = await session.get(File, file_id)
+        if not db_file:
+            raise HTTPException(status_code=404, detail="File not found")
 
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="File not found")
-    return file_path
+        file_path = db_file.file_url
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="File not found on server")
+
+        return FileResponse(path=file_path, filename=db_file.filename, media_type='application/octet-stream')

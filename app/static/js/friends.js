@@ -29,24 +29,21 @@ async function fetchUsers() {
                 userElement.classList.add('user-item');
                 userElement.setAttribute('data-user-id', user.id);
                 userElement.setAttribute('status', user.status);
-
                 // Устанавливаем контент с учетом аватара, имени и последнего сообщения
                 userElement.innerHTML = `
                     <span style="font-size: 30px;">${avatars[user.avatar] || "👤"}  </span>
                     <div style="margin-left: 10px;"> <div>${user.name}</div>
-                        
                     </div><button class="add-friend-btn" data-user-id="${user.id}">+</button>
                 `;
                 const addButton = userElement.querySelector('.add-friend-btn');
                 addButton.addEventListener('click', async () =>  {
                     await addFriend(user.id);
                 });
-                //userElement.innerHTML += `<span class="mail">💬</span>`;
                 userList.appendChild(userElement);
             }
         });
-
-       
+        userItems = document.querySelectorAll('.user-item');
+        search();
     } catch (error) {
         console.error('Ошибка при загрузке списка пользователей:', error);
     }
@@ -132,21 +129,6 @@ async function search() {
     
     try {
         const searchInput = document.querySelector('.search-input');
-        const userItems = document.querySelectorAll('.user-item');
-        console.log("Search function initialized"); // Для отладки
-
-        // Проверяем, что input существует
-        if (!searchInput) {
-            console.error("Search input not found");
-            return;
-        }
-
-        // Проверяем, что userItems существуют
-        if (userItems.length === 0) {
-            console.log("No user items found");
-            return;
-        }
-
         searchInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
             userItems.forEach(item => {
@@ -170,8 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
     search();
 });
 
+let userItems;
 const avatars = ['👩','👨','🧑','👧','👦','🧒','👶','👵','👴','🧓','👩‍🦰','👨‍🦰','👩‍🦱','👨‍🦱','👩‍🦲','👨‍🦲','👩‍🦳','👨‍🦳','👱‍♀️','👱‍♂️','👸','🤴','👳‍♀️','👳‍♂️','👲','🧔','👼','🤶','🎅','👩🏻','👨🏻','🧑🏻','👧🏻','👦🏻','🧒🏻','👶🏻','👵🏻','👴🏻','🧓🏻','👩🏻‍🦰','👨🏻‍🦰','👩🏻‍🦱','👨🏻‍🦱','👩🏻‍🦲','👨🏻‍🦲','👩🏻‍🦳','👨🏻‍🦳','👱🏻‍♀️','👱🏻‍♂️','👸🏻','🤴🏻','👳🏻‍♀️','👳🏻‍♂️','👲🏻','🧔🏻','👼🏻','🤶🏻','🎅🏻','👩🏿','👨🏿','🧑🏿','👧🏿','👦🏿','🧒🏿','👶🏿','👵🏿','👴🏿','🧓🏿','👩🏿‍🦰','👨🏿‍🦰','👩🏿‍🦱','👨🏿‍🦱','👩🏿‍🦲','👨🏿‍🦲','👩🏿‍🦳','👨🏿‍🦳','👱🏿‍♀️','👱🏿‍♂️','👸🏿','🤴🏿','👳🏿‍♀️','👳🏿‍♂️','👲🏿','🧔🏿','👼🏿','🤶🏿','🎅🏿','👤'];
-
 const settingsBtn = document.querySelector('.settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
 const buttonSet = document.querySelectorAll('.set-btn');

@@ -18,7 +18,6 @@ async function logout() {
 }
 
 
-
 async function filesItem() {
     try {
         const response = await fetch('/files');
@@ -27,7 +26,8 @@ async function filesItem() {
         fileList.innerHTML = ''; // Генерация списка файлов
         files.forEach(file => {
             const fileElement = document.createElement('div');
-            fileElement.classList.add('files-item');
+            fileElement.classList.add('file-item');
+            fileElement.setAttribute('file-id', file.id);
             const date = new Date(file.created_at);
             date.setHours(date.getHours() + 5);
             const day = date.getDate().toString().padStart(2, '0');
@@ -67,14 +67,29 @@ async function filesItem() {
             fileList.appendChild(fileElement); 
         });
         updateFileItems();
+        downloadFile();
     } catch (error) {
         console.error('Ошибка при загрузке списка:', error);
     }
 }
+
+
 function updateFileItems() {
     fileItems = document.querySelectorAll('.file-item');
-    console.log(fileItems)
 }
+function downloadFile() {
+    downloadButtons = document.querySelectorAll('.file-button[title="Скачать"]');
+    downloadButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        const fileName = this.closest('.file-item').querySelector('.file-name').textContent;
+        const fileId = this.closest('.file-item').getAttribute('file-id');
+        window.location.href = `/files/download-file/${fileId}`;
+    });
+});
+
+}
+
+
 const settingsBtn = document.querySelector('.settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
 const buttons = document.querySelectorAll('.set-btn');
@@ -130,14 +145,7 @@ searchBar.addEventListener('input', (e) => {
 });
 
 // File actions
-const downloadButtons = document.querySelectorAll('.file-button[title="Скачать"]');
+let downloadButtons;
 
-downloadButtons.forEach(button => {
-    button.addEventListener('click', function() {
-        const fileName = this.closest('.file-item').querySelector('.file-name').textContent;
-        alert(`Начинается загрузка файла: ${fileName}`);
-    });
-});
 
 document.addEventListener('DOMContentLoaded', filesItem);
-document.addEventListener('DOMContentLoaded', fileItems = document.querySelectorAll('.file-item'));
