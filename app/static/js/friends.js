@@ -128,8 +128,47 @@ async function delFriend(friends_id) {
 }
 
 
-document.addEventListener('DOMContentLoaded', fetchUsers);
-document.addEventListener('DOMContentLoaded', fetchFriends);
+async function search() {
+    
+    try {
+        const searchInput = document.querySelector('.search-input');
+        const userItems = document.querySelectorAll('.user-item');
+        console.log("Search function initialized"); // Для отладки
+
+        // Проверяем, что input существует
+        if (!searchInput) {
+            console.error("Search input not found");
+            return;
+        }
+
+        // Проверяем, что userItems существуют
+        if (userItems.length === 0) {
+            console.log("No user items found");
+            return;
+        }
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            userItems.forEach(item => {
+                const userName = item.textContent.toLowerCase().trim();
+                if (userName.includes(searchTerm)) {
+                    item.style.display = 'flex'; // Или 'block', в зависимости от вашей разметки
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    } catch (error) {
+        console.error('Ошибка при выполнении поиска:', error);
+    }
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    fetchUsers();
+    fetchFriends();
+    search();
+});
 
 const avatars = ['👩','👨','🧑','👧','👦','🧒','👶','👵','👴','🧓','👩‍🦰','👨‍🦰','👩‍🦱','👨‍🦱','👩‍🦲','👨‍🦲','👩‍🦳','👨‍🦳','👱‍♀️','👱‍♂️','👸','🤴','👳‍♀️','👳‍♂️','👲','🧔','👼','🤶','🎅','👩🏻','👨🏻','🧑🏻','👧🏻','👦🏻','🧒🏻','👶🏻','👵🏻','👴🏻','🧓🏻','👩🏻‍🦰','👨🏻‍🦰','👩🏻‍🦱','👨🏻‍🦱','👩🏻‍🦲','👨🏻‍🦲','👩🏻‍🦳','👨🏻‍🦳','👱🏻‍♀️','👱🏻‍♂️','👸🏻','🤴🏻','👳🏻‍♀️','👳🏻‍♂️','👲🏻','🧔🏻','👼🏻','🤶🏻','🎅🏻','👩🏿','👨🏿','🧑🏿','👧🏿','👦🏿','🧒🏿','👶🏿','👵🏿','👴🏿','🧓🏿','👩🏿‍🦰','👨🏿‍🦰','👩🏿‍🦱','👨🏿‍🦱','👩🏿‍🦲','👨🏿‍🦲','👩🏿‍🦳','👨🏿‍🦳','👱🏿‍♀️','👱🏿‍♂️','👸🏿','🤴🏿','👳🏿‍♀️','👳🏿‍♂️','👲🏿','🧔🏿','👼🏿','🤶🏿','🎅🏿','👤'];
 
@@ -140,6 +179,8 @@ const buttonSet = document.querySelectorAll('.set-btn');
 document.getElementById('main').addEventListener('click', function() {
     window.location.href = '/chat';
 });
+// Search functionality
+
 
 settingsBtn.addEventListener('click', () => {
     settingsMenu.classList.toggle('active');
@@ -183,22 +224,3 @@ addFriendButtons.forEach(button => {
         this.style.opacity = '0.5';
     });
 });
-// Search functionality
-const searchInput = document.querySelector('.search-input');
-const userItems = document.querySelectorAll('.user-item');
-async function search() {
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        userItems.forEach(item => {
-
-            const userName = item.textContent.toLowerCase().trim();
-            if (userName.includes(searchTerm)) {
-                item.style.display = 'flex';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    });
-}
-document.addEventListener('DOMContentLoaded', search);
-

@@ -281,10 +281,11 @@ function addMessage(text, recipient_id, isFile = false) {
 
 function createMessageElement(text, recipient_id, createdAt) {
     const date = new Date(createdAt);
-    const hours = date.getHours();
+    date.setHours(date.getHours() + 5);
+    const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
     const messageClass = currentUserId === recipient_id ? 'other-message' : 'my-message';
-    return `<div class="message ${messageClass}">${text}<div class="createdAt">${hours+5}:${minutes}</div></div>`;
+    return `<div class="message ${messageClass}">${text}<div class="createdAt">${hours}:${minutes}</div></div>`;
     }
     
 function startMessagePolling(userId) {

@@ -1,6 +1,3 @@
-const settingsBtn = document.querySelector('.settings-btn');
-const settingsMenu = document.querySelector('.settings-menu');
-const buttons = document.querySelectorAll('.set-btn');
 
 // Функция выхода из аккаунта
 async function logout() {
@@ -20,6 +17,69 @@ async function logout() {
     }
 }
 
+
+
+async function filesItem() {
+    try {
+        const response = await fetch('/files');
+        const files = await response.json();
+        const fileList = document.getElementById('files-container');
+        fileList.innerHTML = ''; // Генерация списка файлов
+        files.forEach(file => {
+            const fileElement = document.createElement('div');
+            fileElement.classList.add('files-item');
+            const date = new Date(file.created_at);
+            date.setHours(date.getHours() + 5);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            let icon = 0;
+            const endFile = (file.filename.split('.')).pop(); // Получение расширения файла
+            if (['xlsx', 'csv'].includes(endFile)) {
+                icon = 2;
+            } else if (['jpg', 'png', 'bmp', 'gif'].includes(endFile)) {
+                icon = 1;
+            } else if (['pdf', 'djvu', 'doc', 'docx'].includes(endFile)) {
+                icon = 3;
+            } else if (['avi', 'mp4', 'mkv', 'mov'].includes(endFile)) {
+                icon = 4;
+            } else if (['mp3', 'aac', 'flac', 'wma'].includes(endFile)) {
+                icon = 5;
+            } else if (['dxf', 'dwg', 'mksl', 'prt', 'asm'].includes(endFile)) {
+                icon = 6;
+            }
+
+            fileElement.innerHTML = `
+                <div class="file-info">
+                    <div class="file-icon">${fileIcon[icon]}</div>
+                    <div class="file-details">
+                        <div class="file-name">${file.filename}</div>
+                        <div class="file-meta">От: ${file.sender} • ${(file.file_size / 1024).toFixed(2)} KB • ${day}.${month}.${year} </div>
+                    </div>
+                </div>
+                <div class="file-actions">
+                    <button class="file-button" id="dnld-button" title="Скачать">⬇️</button>
+                </div>
+                
+                `
+            ;
+
+            fileList.appendChild(fileElement); 
+        });
+        updateFileItems();
+    } catch (error) {
+        console.error('Ошибка при загрузке списка:', error);
+    }
+}
+function updateFileItems() {
+    fileItems = document.querySelectorAll('.file-item');
+    console.log(fileItems)
+}
+const settingsBtn = document.querySelector('.settings-btn');
+const settingsMenu = document.querySelector('.settings-menu');
+const buttons = document.querySelectorAll('.set-btn');
+const fileIcon = ['📄','🖼️','📊','📜','🎬','🎧','📐'];
+
 document.getElementById('main').addEventListener('click', function() {
     window.location.href = '/chat';
 });
@@ -34,6 +94,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// Exit
 buttons.forEach(button => {
     button.addEventListener('click', async () => {
         const url = button.getAttribute('data-url'); // Получаем URL из атрибута data-url
@@ -57,8 +118,7 @@ buttons.forEach(button => {
 
 // Search functionality
 const searchBar = document.querySelector('.search-bar');
-const fileItems = document.querySelectorAll('.file-item');
-
+let fileItems = document.querySelectorAll('.file-item');
 searchBar.addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase();
     fileItems.forEach(item => {
@@ -70,18 +130,7 @@ searchBar.addEventListener('input', (e) => {
 });
 
 // File actions
-const deleteButtons = document.querySelectorAll('.file-button[title="Удалить"]');
 const downloadButtons = document.querySelectorAll('.file-button[title="Скачать"]');
-
-deleteButtons.forEach(button => {
-    button.addEventListener('click', function() {
-        const fileItem = this.closest('.file-item');
-        const fileName = fileItem.querySelector('.file-name').textContent;
-        if (confirm(`Вы уверены, что хотите удалить файл "${fileName}"?`)) {
-            fileItem.remove();
-        }
-    });
-});
 
 downloadButtons.forEach(button => {
     button.addEventListener('click', function() {
@@ -89,3 +138,6 @@ downloadButtons.forEach(button => {
         alert(`Начинается загрузка файла: ${fileName}`);
     });
 });
+
+document.addEventListener('DOMContentLoaded', filesItem);
+document.addEventListener('DOMContentLoaded', fileItems = document.querySelectorAll('.file-item'));

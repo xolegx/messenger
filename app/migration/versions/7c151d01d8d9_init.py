@@ -1,8 +1,8 @@
 """'init'
 
-Revision ID: cf5759bec7e9
+Revision ID: 7c151d01d8d9
 Revises: 
-Create Date: 2025-02-01 18:56:58.875223
+Create Date: 2025-02-16 21:03:34.390049
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'cf5759bec7e9'
+revision: str = '7c151d01d8d9'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -63,14 +63,14 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('filename', sa.Text(), nullable=False),
     sa.Column('file_url', sa.Text(), nullable=False),
+    sa.Column('file_size', sa.Text(), nullable=False),
     sa.Column('message_id', sa.Integer(), nullable=True),
-    sa.Column('sender_id', sa.Integer(), nullable=False),
+    sa.Column('sender', sa.Text(), nullable=False),
     sa.Column('recipient_id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.ForeignKeyConstraint(['message_id'], ['messages.id'], ),
     sa.ForeignKeyConstraint(['recipient_id'], ['users.id'], ),
-    sa.ForeignKeyConstraint(['sender_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_files_filename'), 'files', ['filename'], unique=False)

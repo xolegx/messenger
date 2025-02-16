@@ -10,8 +10,9 @@ class File(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     filename: Mapped[str] = mapped_column(Text, index=True)
     file_url: Mapped[str] = mapped_column(Text)
+    file_size: Mapped[str] = mapped_column(Text)
     message_id: Mapped[int] = mapped_column(Integer, ForeignKey('messages.id'), nullable=True)
-    sender_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    sender: Mapped[str] = mapped_column(Text)
     recipient_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
 
 

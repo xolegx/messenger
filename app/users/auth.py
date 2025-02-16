@@ -4,8 +4,6 @@ from jose import jwt
 from datetime import datetime, timedelta, timezone
 from app.config import get_auth_data
 from app.users.core import UsersCORE
-from app.database import async_session_maker
-from app.users.models import User
 
 
 def create_access_token(data: dict) -> str:

@@ -85,17 +85,11 @@ body {
     background-color: var(--hover-color);
 }
 
-.files-list {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 10px;
-}
-
 .main-area {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
 }
 
 .search-bar {
@@ -115,22 +109,28 @@ body {
     color: var(--text-color);
 }
 
-.file-item {
+
+.files-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 15px;
+    padding: 5px;
     background-color: var(--primary-blue);
     border-radius: 8px;
-    margin-bottom: 10px;
     margin-left: 15px;
-    max-width: 700px;       
+    position: relative;
+    max-width: 700px;
+    margin-bottom: 10px;
+    justify-content: space-between;
 }
 
 .file-info {
     display: flex;
-    align-items: center;
     gap: 15px;
+}
+
+.file-actions {
+    display: flex;
+    gap: 10px;
 }
 
 .file-icon {
@@ -157,11 +157,6 @@ body {
 .file-meta {
     font-size: 0.8em;
     color: #aaa;
-}
-
-.file-actions {
-    display: flex;
-    gap: 10px;
 }
 
 .file-button {

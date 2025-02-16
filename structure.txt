@@ -1,0 +1,43 @@
+messenger/
+├── app/
+│   ├── chat/
+│   │   ├── core.py
+│   │   ├── models.py
+│   │   ├── router.py
+│   │   └── schemas.py
+│   ├── core/
+│   │   └── base.py
+│   ├── files/
+│   │   ├── models.py
+│   │   ├── router.py
+│   │   └── schemas.py
+│   ├── friends/
+│   │   ├── models.py
+│   │   ├── router.py
+│   │   └── schemas.py
+│   ├── migration/
+│   │   ├── versions/
+│   │   └── env.py
+│   ├── static/
+│   │   ├── img/
+│   │   ├── js/
+│   │   └── styles/
+│   ├── templates/
+│   │   ├── auth.html
+│   │   └── chat.html
+│   ├── users/
+│   │   ├── auth.py
+│   │   ├── dependencies.py
+│   │   ├── core.py
+│   │   ├── models.py
+│   │   ├── router.py
+│   │   └── schemas.py
+│   ├── config.py
+│   ├── database.py
+│   ├── exeptions.py
+│   └── main.py
+├── uploaded_files/
+├── alembic.ini
+├── .env 
+├── requirements.txt     
+└── Dockerfile           
