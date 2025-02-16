@@ -61,3 +61,16 @@ async def download_file(file_id: int, current_user: User = Depends(get_current_u
             raise HTTPException(status_code=404, detail="File not found on server")
 
         return FileResponse(path=file_path, filename=db_file.filename, media_type='application/octet-stream')
+
+
+@router.delete("/delete-file/{file_id}")
+async def delete_file(file_id: int, current_user: User = Depends(get_current_user)):
+    async with async_session_maker() as session:
+        db_file = await session.get(File, file_id)
+        if not db_file:
+            raise HTTPException(status_code=404, detail="File not found")
+
+        await session.delete(db_file)
+        await session.commit()
+
+        return {"status": "ok", "msg": "File deleted successfully!"}

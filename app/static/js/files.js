@@ -58,7 +58,8 @@ async function filesItem() {
                     </div>
                 </div>
                 <div class="file-actions">
-                    <button class="file-button" id="dnld-button" title="Скачать">⬇️</button>
+                    <button class="file-button" title="Скачать">⬇️</button>
+                    <button class="file-button" title="Удалить">🗑️</button>
                 </div>
                 
                 `
@@ -68,6 +69,7 @@ async function filesItem() {
         });
         updateFileItems();
         downloadFile();
+        deleteFile();
     } catch (error) {
         console.error('Ошибка при загрузке списка:', error);
     }
@@ -77,16 +79,42 @@ async function filesItem() {
 function updateFileItems() {
     fileItems = document.querySelectorAll('.file-item');
 }
+
+
 function downloadFile() {
-    downloadButtons = document.querySelectorAll('.file-button[title="Скачать"]');
+    let downloadButtons = document.querySelectorAll('.file-button[title="Скачать"]');
     downloadButtons.forEach(button => {
     button.addEventListener('click', function() {
-        const fileName = this.closest('.file-item').querySelector('.file-name').textContent;
         const fileId = this.closest('.file-item').getAttribute('file-id');
         window.location.href = `/files/download-file/${fileId}`;
     });
 });
+}
 
+
+function deleteFile() {
+    let deleteButtons = document.querySelectorAll('.file-button[title="Удалить"]');
+
+    deleteButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        const fileId = this.closest('.file-item').getAttribute('file-id');
+
+        if (confirm("Вы уверены, что хотите удалить этот файл?")) {
+            fetch(`/files/delete-file/${fileId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка при удалении файла');
+                }
+                window.location.href = '/auth/files';
+            })
+        }
+    });
+});
 }
 
 
@@ -143,9 +171,5 @@ searchBar.addEventListener('input', (e) => {
         item.style.display = shouldShow ? 'flex' : 'none';
     });
 });
-
-// File actions
-let downloadButtons;
-
 
 document.addEventListener('DOMContentLoaded', filesItem);
