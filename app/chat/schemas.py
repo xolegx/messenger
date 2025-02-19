@@ -8,8 +8,12 @@ class MessageRead(BaseModel):
     recipient_id: int = Field(..., description="ID получателя сообщения")
     content: str = Field(..., description="Содержимое сообщения")
     created_at: datetime = Field(..., description="Date сообщения")
+    is_sticker: bool = Field(..., description="Стикер ли?")
+    is_file: bool = Field(..., description="Файл ли?")
 
 
 class MessageCreate(BaseModel):
     recipient_id: int = Field(..., description="ID получателя сообщения")
     content: str = Field(..., description="Содержимое сообщения")
+    is_sticker: bool = Field(default=False, description="Стикер ли?")
+    is_file: bool = Field(default=False, description="Файл ли?")

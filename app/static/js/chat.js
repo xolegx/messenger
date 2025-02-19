@@ -292,7 +292,7 @@ async function uploadFile(file) {
         }
     const formData = new FormData();
 
-    const payload = {recipient_id: selectedUserId, content: `Файл ${file.name}`};
+    const payload = {recipient_id: selectedUserId, content: `Файл ${file.name}`, is_file: true};
     try {
         const messageResponse = await fetch('/chat/messages', {
                 method: 'POST',

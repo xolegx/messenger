@@ -36,7 +36,7 @@ async def upload_file(file: UploadFile = File,
                        file_size=file_size,
                        sender=current_user.name,
                        message_id=message_id,
-                       recipient_id=recipient_id
+                       recipient_id=recipient_id,
                        )
         session.add(db_file)
         await session.commit()

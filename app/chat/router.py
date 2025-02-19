@@ -56,13 +56,14 @@ async def send_message(message: MessageCreate, current_user: User = Depends(get_
         sender_id=current_user.id,
         content=encrypted_content,  # Сохраняем зашифрованное содержимое
         recipient_id=message.recipient_id,
+        is_file=message.is_file,
     )
-    message_data = {
-        'sender_id': current_user.id,
-        'recipient_id': message.recipient_id,
-        'content': message.content,
-        'id': created_message_id,
-    }
+    # message_data = {
+    #     'sender_id': current_user.id,
+    #     'recipient_id': message.recipient_id,
+    #     'content': message.content,
+    #     'id': created_message_id,
+    # }
     # await notify_user(message.recipient_id, message_data)
     # await notify_user(current_user.id, message_data)
     return {'id': created_message_id, 'recipient_id': message.recipient_id, 'content': message.content, 'status': 'ok', 'msg': 'Message saved!'}
