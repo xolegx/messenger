@@ -63,8 +63,8 @@ async def send_message(message: MessageCreate, current_user: User = Depends(get_
         'content': message.content,
         'id': created_message_id,
     }
-    await notify_user(message.recipient_id, message_data)
-    await notify_user(current_user.id, message_data)
+    # await notify_user(message.recipient_id, message_data)
+    # await notify_user(current_user.id, message_data)
     return {'id': created_message_id, 'recipient_id': message.recipient_id, 'content': message.content, 'status': 'ok', 'msg': 'Message saved!'}
 
 

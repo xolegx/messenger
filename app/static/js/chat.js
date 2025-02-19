@@ -130,7 +130,6 @@ async function statusOn(userId) {
         }
 
         const data = await response.json();
-        console.log('Статус пользователя online');
         
     } catch (error) {
         console.error('Ошибка обновления статуса:', error);
@@ -149,7 +148,6 @@ async function statusOff(userId) {
         }
 
         const data = await response.json();
-        console.log('Статус пользователя offline');
         
     } catch (error) {
         console.error('Ошибка обновления статуса:', error);
@@ -213,6 +211,25 @@ async function checkUnreadCountMessages() {
     }
 }
 
+async function checkUnreadMessages() {
+            try {
+                const response = await fetch('/chat/messages/unread_counts/');
+                const data = await response.json();
+
+                const unreadCounts = data.unread_counts;
+                const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+                
+                // Изменяем заголовок страницы в зависимости от количества непрочитанных сообщений
+                if (totalUnread > 0) {
+                    document.title = `(${totalUnread}) Новые сообщения`;
+                } else {
+                    document.title = "CosmoChat";
+                }
+            } catch (error) {
+                console.error('Ошибка при получении непрочитанных сообщений:', error);
+            }
+        }
+
 async function readMessages(userId) {
     try {
         const response = await fetch(`/chat/messages/read/${userId}`, { // Убедитесь, что вы передаете правильные параметры
@@ -220,7 +237,6 @@ async function readMessages(userId) {
         headers: {'Content-Type': 'application/json',}
         });
         if (response.ok) {
-            console.log('Сообщения прочитаны');
         } else {
             console.error('Ошибка');
         }
@@ -270,6 +286,10 @@ async function sendMessage() {
 
 
 async function uploadFile(file) {
+    if (file.size > MAX_FILE_SIZE) {
+        alert(`Размер файла должен быть не более ${MAX_FILE_SIZE / (1024 * 1024)} MB.`);
+        return;
+        }
     const formData = new FormData();
 
     const payload = {recipient_id: selectedUserId, content: `Файл ${file.name}`};
@@ -279,6 +299,10 @@ async function uploadFile(file) {
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(payload)
             });
+         if (!messageResponse.ok) {
+            const errorText = await messageResponse.text();
+            throw new Error(`Ошибка при отправке сообщения: ${errorText}`);
+        }
         const messageData = await messageResponse.json();
         formData.append('file', file);
         formData.append('message_id', messageData.id);
@@ -287,8 +311,10 @@ async function uploadFile(file) {
             method: 'POST',
             body: formData,
         });
-
-        console.log('Файл успешно загружен:');
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Ошибка при загрузке файла: ${errorText}`);
+        }
     } catch (error) {
         console.error('Ошибка:', error);
     }
@@ -341,7 +367,7 @@ async function logout() {
 
 
 
-
+const MAX_FILE_SIZE = 100 * 1024 * 1024;
 let timeoutIdSelect;
 let timeoutIdAll;
 // Первоначальная настройка событий нажатия на пользователей
@@ -419,6 +445,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
+setInterval(checkUnreadMessages, 3000);
 
 // Отправка файлов
 const fileBtn = document.querySelector('.file-btn');

@@ -125,6 +125,27 @@ async function delFriend(friends_id) {
 }
 
 
+async function checkUnreadMessages() {
+            try {
+                const response = await fetch('/chat/messages/unread_counts/');
+                const data = await response.json();
+
+                const unreadCounts = data.unread_counts;
+                const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+                
+                // Изменяем заголовок страницы в зависимости от количества непрочитанных сообщений
+                if (totalUnread > 0) {
+                    document.title = `(${totalUnread}) Новые сообщения`;
+                } else {
+                    document.title = "Мои друзья";
+                }
+            } catch (error) {
+                console.error('Ошибка при получении непрочитанных сообщений:', error);
+            }
+        }
+setInterval(checkUnreadMessages, 3000);
+
+
 async function search() {
     
     try {

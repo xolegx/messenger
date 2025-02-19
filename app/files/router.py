@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from fastapi import APIRouter, UploadFile, Depends, HTTPException, Form
 from fastapi.responses import FileResponse
 from typing import List
@@ -23,7 +24,9 @@ async def upload_file(file: UploadFile = File,
                       message_id: int = Form(...),
                       recipient_id: int = Form(...),
                       current_user: User = Depends(get_current_user)):
-    file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = timestamp + file.filename
+    file_path = os.path.join(UPLOAD_DIRECTORY, filename)
     with open(file_path, "wb") as buffer:
         buffer.write(await file.read())
     file_size = os.path.getsize(file_path)

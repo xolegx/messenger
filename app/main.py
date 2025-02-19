@@ -8,9 +8,11 @@ from app.users.router import router as users_router
 from app.chat.router import router as chat_router
 from app.friends.router import router as friends_router
 from app.files.router import router as files_router
+from app.middlewares import FileSizeLimitMiddleware
 
 app = FastAPI()
 app.mount('/static', StaticFiles(directory='app/static'), name='static')
+MAX_UPLOAD_SIZE = 100 * 1024 * 1024
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,6 +21,8 @@ app.add_middleware(
     allow_methods=["*"],  # Разрешить все методы (GET, POST, PUT, DELETE и т.д.)
     allow_headers=["*"],  # Разрешить все заголовки
 )
+
+app.add_middleware(FileSizeLimitMiddleware, max_upload_size=MAX_UPLOAD_SIZE)
 
 app.include_router(users_router)
 app.include_router(chat_router)
