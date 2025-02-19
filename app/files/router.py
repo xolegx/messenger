@@ -1,5 +1,5 @@
 import os
-from fastapi import APIRouter, UploadFile, Depends, HTTPException
+from fastapi import APIRouter, UploadFile, Depends, HTTPException, Form
 from fastapi.responses import FileResponse
 from typing import List
 from sqlalchemy.future import select
@@ -19,9 +19,9 @@ if not os.path.exists(UPLOAD_DIRECTORY):
 
 
 @router.post("/upload-file/")
-async def upload_file(file: UploadFile,
-                      message_id: int,
-                      recipient_id: int,
+async def upload_file(file: UploadFile = File,
+                      message_id: int = Form(...),
+                      recipient_id: int = Form(...),
                       current_user: User = Depends(get_current_user)):
     file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
     with open(file_path, "wb") as buffer:
@@ -31,14 +31,15 @@ async def upload_file(file: UploadFile,
         db_file = File(filename=file.filename,
                        file_url=file_path,
                        file_size=file_size,
-                       message_id=message_id,
                        sender=current_user.name,
-                       recipient_id=recipient_id)
+                       message_id=message_id,
+                       recipient_id=recipient_id
+                       )
         session.add(db_file)
         await session.commit()
         await session.refresh(db_file)
 
-        return 'File uploaded successfully!'
+        return {'message': 'File uploaded successfully!'}
 
 
 @router.get("/", response_model=List[FileRead])

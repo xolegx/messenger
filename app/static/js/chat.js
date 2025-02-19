@@ -27,6 +27,7 @@ async function selectUser(userId, userName, event) {
     const headerName = userNamesplit.slice(1,46).join(' ');
     document.getElementById('chat-header').innerHTML = `<span>${headerName}</span>` ;
     document.getElementById('messageInput').disabled = false;
+    document.getElementById('file-btn').disabled = false;
     document.getElementById('send-btn').disabled = false;
     readMessages(userId);
     const notification = document.getElementById(`notification-${userId}`);
@@ -336,8 +337,6 @@ let messagePollingInterval = null;
 
 let status = true;
 
-const fileBtn = document.querySelector('.file-btn');
-const fileInput = document.querySelector('.file-input');
 const settingsBtn = document.querySelector('.settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
 
@@ -394,14 +393,42 @@ document.addEventListener('click', (e) => {
     }
 });
 
+
+async function uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('message_id', 2);
+    formData.append('recipient_id', 2);
+
+    try {
+        const response = await fetch('/files/upload-file/', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error(`Ошибка при загрузке файла: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('Файл успешно загружен:', result.message);
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
+}
 // Отправка файлов
+const fileBtn = document.querySelector('.file-btn');
+const fileInput = document.querySelector('.file-input');
 fileBtn.addEventListener('click', () => {
     fileInput.click();
 });
 
-
-
-
+fileInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        uploadFile(file);
+    }
+});
 
     // Настройки
 const buttons = document.querySelectorAll('.set-btn');
@@ -446,3 +473,5 @@ window.addEventListener('beforeunload', function (event) {
 timeoutIdAll = setTimeout(() => {statusOff(currentUserId);}, 120000);
 setInterval(() => checkStatus(),5000);
 setInterval(() => checkUnreadCountMessages(),1000);
+
+
