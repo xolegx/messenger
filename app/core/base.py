@@ -1,8 +1,6 @@
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import insert
 from sqlalchemy.future import select
-from sqlalchemy import update as sqlalchemy_update, delete as sqlalchemy_delete, func
 from app.database import async_session_maker
-from app.users.models import User
 
 
 class BaseCORE:
@@ -58,24 +56,10 @@ class BaseCORE:
 
     @classmethod
     async def add(cls, **values):
-        """
-        Асинхронно создает новый экземпляр модели с указанными значениями.
-
-        Аргументы:
-            **values: Именованные параметры для создания нового экземпляра модели.
-
-        Возвращает:
-            Созданный экземпляр модели.
-        """
         async with async_session_maker() as session:
             async with session.begin():
-                new_instance = cls.model(**values)
-                session.add(new_instance)
-                try:
-                    await session.commit()
-                except SQLAlchemyError as e:
-                    await session.rollback()
-                    raise e
-                return new_instance
-
-
+                stmt = insert(cls.model).values(**values).returning(cls.model.id)
+                result = await session.execute(stmt)
+                created_id = result.scalar()
+                await session.commit()
+                return created_id  # Возвращаем id созданного сообщения

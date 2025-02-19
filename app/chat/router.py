@@ -8,7 +8,6 @@ from app.chat.models import Message
 from app.users.core import UsersCORE
 from app.users.dependencies import get_current_user
 from app.users.models import User
-from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import async_session_maker
 from sqlalchemy.future import select
 from sqlalchemy import update
@@ -49,11 +48,11 @@ async def get_messages(user_id: int, current_user: User = Depends(get_current_us
     return await MessagesCORE.get_messages_between_users(user_id_1=user_id, user_id_2=current_user.id) or []
 
 
-@router.post("/messages", response_model=MessageCreate)
+@router.post("/messages")
 async def send_message(message: MessageCreate, current_user: User = Depends(get_current_user)):
     encrypted_content = encrypt_message(message.content)  # Шифруем и декодируем в строку
 
-    await MessagesCORE.add(
+    created_message_id = await MessagesCORE.add(
         sender_id=current_user.id,
         content=encrypted_content,  # Сохраняем зашифрованное содержимое
         recipient_id=message.recipient_id,
@@ -62,10 +61,11 @@ async def send_message(message: MessageCreate, current_user: User = Depends(get_
         'sender_id': current_user.id,
         'recipient_id': message.recipient_id,
         'content': message.content,
+        'id': created_message_id,
     }
     await notify_user(message.recipient_id, message_data)
     await notify_user(current_user.id, message_data)
-    return {'recipient_id': message.recipient_id, 'content': message.content, 'status': 'ok', 'msg': 'Message saved!'}
+    return {'id': created_message_id, 'recipient_id': message.recipient_id, 'content': message.content, 'status': 'ok', 'msg': 'Message saved!'}
 
 
 @router.put("/messages/{message_id}/read")

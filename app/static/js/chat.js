@@ -268,6 +268,32 @@ async function sendMessage() {
     }
 }
 
+
+async function uploadFile(file) {
+    const formData = new FormData();
+
+    const payload = {recipient_id: selectedUserId, content: `Файл ${file.name}`};
+    try {
+        const messageResponse = await fetch('/chat/messages', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+        const messageData = await messageResponse.json();
+        formData.append('file', file);
+        formData.append('message_id', messageData.id);
+        formData.append('recipient_id', selectedUserId);
+        const response = await fetch('/files/upload-file/', {
+            method: 'POST',
+            body: formData,
+        });
+
+        console.log('Файл успешно загружен:');
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
+}
+
 // Добавление сообщения в чат
 
 function addMessage(text, recipient_id, isFile = false) {
@@ -394,28 +420,6 @@ document.addEventListener('click', (e) => {
 });
 
 
-async function uploadFile(file) {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('message_id', 2);
-    formData.append('recipient_id', 2);
-
-    try {
-        const response = await fetch('/files/upload-file/', {
-            method: 'POST',
-            body: formData,
-        });
-
-        if (!response.ok) {
-            throw new Error(`Ошибка при загрузке файла: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('Файл успешно загружен:', result.message);
-    } catch (error) {
-        console.error('Ошибка:', error);
-    }
-}
 // Отправка файлов
 const fileBtn = document.querySelector('.file-btn');
 const fileInput = document.querySelector('.file-input');
