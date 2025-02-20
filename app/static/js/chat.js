@@ -245,17 +245,60 @@ async function readMessages(userId) {
     }
 }
 
+
 async function loadMessages(userId) {
     try {
         const response = await fetch(`/chat/messages/${userId}`);
         const messages = await response.json();
         const messagesContainer = document.getElementById('messages');
-        messagesContainer.innerHTML = messages.map(message =>
-            createMessageElement(message.content, message.recipient_id, message.created_at)
-        ).join('');
+        
+        let lastDate = null; // Для отслеживания последней даты
+        const today = new Date();
+        messagesContainer.innerHTML = messages.map((message) => {
+            const currentDate = new Date(message.created_at); // Получаем только дату
+            formated_currentDate = formatDate(currentDate); // Форматируем дату в DD.MM.YYYY
+            formated_today = formatDate(today);
+
+            let dateDivider = '';
+
+            // Если дата текущего сообщения отличается от предыдущей, добавляем разделитель
+            if (lastDate !== formated_currentDate) {
+                lastDate = formated_currentDate;
+                if (formated_currentDate === formated_today) {
+                    dateDivider = `<div class="date-divider">Сегодня</div>`;
+                } else {
+                    dateDivider = `<div class="date-divider">${formated_currentDate}</div>`;
+                }
+            }
+
+            return `${dateDivider}${createMessageElement(
+                message.content,
+                message.recipient_id,
+                message.created_at
+            )}`;
+        }).join('');
     } catch (error) {
         console.error('Ошибка загрузки сообщений:', error);
     }
+}
+
+function formatDate(date) {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Месяцы начинаются с 0
+    const year = date.getFullYear();
+    return `${day}.${month}.${year}`;
+}
+
+function createMessageElement(text, recipient_id, createdAt) {
+    const date = new Date(createdAt);
+    date.setHours(date.getHours() + 5); // Добавляем смещение времени
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const messageClass = currentUserId === recipient_id ? 'other-message' : 'my-message';
+    return `<div class="message ${messageClass}">
+                <div class="message-content">${text}</div>
+                <div class="createdAt">${hours}:${minutes}</div>
+            </div>`;
 }
 
 // Отправка сообщения
@@ -332,7 +375,7 @@ function addMessage(text, recipient_id, isFile = false) {
 
 // Создание HTML элемента сообщения
 
-function createMessageElement(text, recipient_id, createdAt) {
+function createMessageElement1(text, recipient_id, createdAt) {
     const date = new Date(createdAt);
     date.setHours(date.getHours() + 5);
     const hours = date.getHours().toString().padStart(2, '0');

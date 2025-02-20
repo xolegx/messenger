@@ -20,6 +20,14 @@ body {
     display: flex;
 }
 
+.date-divider {
+    text-align: center;
+    margin: 5px 0;
+    font-weight: bold;
+    font-size: 13px;
+    color: #888;
+}
+
 .sidebar {
     width: 300px;
     background-color: var(--secondary-blue);
@@ -125,7 +133,9 @@ body {
 .messages {
     flex: 1;
     overflow-y: auto;
-    padding: 15px;
+    padding-top: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -139,6 +149,7 @@ body {
 }
 
 .message {
+    margin-top: 10px;
     margin-bottom: 10px;
     padding: 10px;
     border-radius: 20px;
