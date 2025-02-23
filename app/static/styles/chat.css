@@ -20,11 +20,23 @@ body {
     display: flex;
 }
 
+.main {
+    background-image: url('/static/img/12.png');
+    background-size: cover; 
+    background-color: var(--primary-blue);
+    width: 40px; 
+    height: 40px; 
+    border: none; 
+    cursor: pointer; 
+    margin-left: 200px;
+    float: right;
+    margin: 10px;
+}
+
 .date-divider {
     text-align: center;
     margin: 5px 0;
-    font-weight: bold;
-    font-size: 13px;
+    font-size: 12px;
     color: #888;
 }
 
@@ -300,8 +312,11 @@ body {
 
 .lastMessage {
     font-size: 12px;
-        display: flex;
+    display: block;
     float: bottom;
     bottom: 10px;
-
-    }
+    max-width: 150px; /* Установите желаемую ширину */
+    white-space: nowrap; /* Запретить перенос строк */
+    overflow: hidden; /* Скрыть переполнение */
+    text-overflow: ellipsis; /* Добавить многоточие */
+}

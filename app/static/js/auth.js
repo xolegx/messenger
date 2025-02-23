@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => {location.reload();}, 500);
             } else {
                 const error = await response.json();
-                alert(error.detail);
+                alert("Слишком короткие почта, пароль или имя!");
             }
         } catch (error) {
             console.error('Error:', error);

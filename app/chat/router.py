@@ -2,7 +2,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request, Depends,
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from typing import List, Dict
-from app.chat.core import MessagesCORE, encrypt_message
+from app.chat.core import MessagesCORE, encrypt_message, decrypt_message
 from app.chat.schemas import MessageRead, MessageCreate
 from app.chat.models import Message
 from app.users.core import UsersCORE
@@ -10,7 +10,7 @@ from app.users.dependencies import get_current_user
 from app.users.models import User
 from app.database import async_session_maker
 from sqlalchemy.future import select
-from sqlalchemy import update
+from sqlalchemy import update, or_
 
 import asyncio
 
@@ -133,3 +133,18 @@ async def read_messages(user_id: int, user_data: User = Depends(get_current_user
 
             # Не забудьте зафиксировать изменения
             await session.commit()
+
+
+@router.get("/messages/last_message/{user_id}")
+async def get_last_message(user_id: int):
+    async with async_session_maker() as session:
+        result = await session.execute(
+            select(Message).filter(or_(
+                Message.recipient_id == user_id,
+                Message.sender_id == user_id
+            )).order_by(Message.id.desc()))
+        last_message = result.scalars().first()
+
+        if not last_message:
+            return None
+        return decrypt_message(last_message.content)

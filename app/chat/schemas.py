@@ -10,6 +10,7 @@ class MessageRead(BaseModel):
     created_at: datetime = Field(..., description="Date сообщения")
     is_sticker: bool = Field(..., description="Стикер ли?")
     is_file: bool = Field(..., description="Файл ли?")
+    is_read: bool = Field(..., description="Прочитанно ли?")
 
 
 class MessageCreate(BaseModel):

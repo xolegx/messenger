@@ -19,9 +19,10 @@
             <button class="set-btn" data-url="/auth/files">💾 Файлы</button>
             <button class="set-btn" style="background: rgba(100,0,0,0.2)">🚪 Выйти</button>
                     </div>
+                <button class="main" id="main"></button>
     </div>
     <div class="friends-list" id="friends-list">
-                <div class="user-item" data-user-id="{{ user.id }}">
+        <div class="user-item" data-user-id="{{ user.id }}">
             
         </div>
     <!-- Друзья будут добавляться динамически -->
@@ -44,7 +45,9 @@
             <div class="emoji-picker" id="emojiPicker">
             <!-- Эмодзи будут добавлены динамически -->
             </div>
+
     </div>
+
 </div>
 <script>
     // Передаем идентификатор текущего пользователя в JavaScript
