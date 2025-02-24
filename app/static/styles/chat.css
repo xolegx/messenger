@@ -199,14 +199,6 @@ body {
     width: 100vh;
 }
 
-.createdAt {
-    padding: 3px;
-    border: none;
-    font-size: 12px;
-    border-radius: 15px;
-    color: lightgrey;
-}
-
 .message-input input {
     flex-grow: 1;
     padding: 10px;
@@ -319,4 +311,21 @@ body {
     white-space: nowrap; /* Запретить перенос строк */
     overflow: hidden; /* Скрыть переполнение */
     text-overflow: ellipsis; /* Добавить многоточие */
+}
+
+.readed {
+    font-style: italic;
+    font-size: 11px;
+    font-stretch: ultra-condensed;
+    display: inline-block;
+    transform: skew(-16deg);
+}
+
+.createdAt {
+    padding: 3px;
+    border: none;
+    font-size: 12px;
+    border-radius: 15px;
+    color: lightgrey;
+    display: inline-block;
 }

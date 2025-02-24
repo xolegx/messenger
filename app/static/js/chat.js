@@ -316,15 +316,15 @@ function createMessageElement(text, recipient_id, createdAt, is_file, is_read) {
     // Если сообщение является файлом, добавляем ссылку
     let content;
     if (is_file) {
-        content = `<a href="${text}" class="file-link">⬇️</a>`;
+        content = `<a href="Пока не работает)" class="file-link">⬇️${text}</a>`;
     } else {
-        content = escapeHtml(text); // Экранируем текст, чтобы избежать XSS
+        content = text; // Экранируем текст, чтобы избежать XSS
     }
 
     // Статус прочтения для сообщений, отправленных текущим пользователем
     let readStatus = '';
     if (messageClass === 'my-message') {
-        readStatus = `<div class="readed">${is_read ? '⩗⩗' : '⩗'}</div>`;
+        readStatus = `<div class="readed">${is_read ? 'VI' : 'V'}</div>`;
     }
 
     // Создаем HTML-разметку сообщения
@@ -337,21 +337,6 @@ function createMessageElement(text, recipient_id, createdAt, is_file, is_read) {
     `;
     return message;
 }
-
-// Вспомогательная функция для форматирования времени
-function formatTime(date) {
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return { hours, minutes };
-}
-
-// Вспомогательная функция для экранирования текста (защита от XSS)
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
     
 
 // Отправка сообщения
