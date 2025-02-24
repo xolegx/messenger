@@ -5,6 +5,7 @@ from typing import List, Dict
 from app.chat.core import MessagesCORE, encrypt_message, decrypt_message
 from app.chat.schemas import MessageRead, MessageCreate
 from app.chat.models import Message
+from app.files.models import File
 from app.users.core import UsersCORE
 from app.users.dependencies import get_current_user
 from app.users.models import User
@@ -148,3 +149,20 @@ async def get_last_message(user_id: int):
         if not last_message:
             return None
         return decrypt_message(last_message.content)
+
+
+@router.get("/file-id-by-message/{message_id}")
+async def get_file_id_by_message(message_id: int, current_user: User = Depends(get_current_user)):
+    async with async_session_maker() as session:
+        # Получаем сообщение по его ID
+        db_message = await session.get(File, message_id)
+        if not db_message:
+            raise HTTPException(status_code=404, detail="Message not found")
+
+        # Получаем связанные файлы
+        file_id = db_message.id
+        if not file_id:
+            raise HTTPException(status_code=404, detail="No files found for this message")
+
+        # В данном примере мы просто возвращаем первый файл, если их несколько
+        return {"file_id": db_message}

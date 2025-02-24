@@ -313,7 +313,16 @@ body {
     text-overflow: ellipsis; /* Добавить многоточие */
 }
 
-.readed {
+.readed-green {
+    font-style: italic;
+    font-size: 11px;
+    font-stretch: ultra-condensed;
+    display: inline-block;
+    transform: skew(-16deg);
+    color: #87D34B;
+}
+
+.readed-gray {
     font-style: italic;
     font-size: 11px;
     font-stretch: ultra-condensed;
@@ -328,4 +337,9 @@ body {
     border-radius: 15px;
     color: lightgrey;
     display: inline-block;
+}
+
+.file-link {
+    text-decoration: none;
+    color: inherit;
 }

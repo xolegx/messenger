@@ -316,7 +316,7 @@ function createMessageElement(text, recipient_id, createdAt, is_file, is_read) {
     // Если сообщение является файлом, добавляем ссылку
     let content;
     if (is_file) {
-        content = `<a href="Пока не работает)" class="file-link">⬇️${text}</a>`;
+        content = `<a href="" class="file-link">⬇️${text}</a>`;
     } else {
         content = text; // Экранируем текст, чтобы избежать XSS
     }
@@ -324,7 +324,9 @@ function createMessageElement(text, recipient_id, createdAt, is_file, is_read) {
     // Статус прочтения для сообщений, отправленных текущим пользователем
     let readStatus = '';
     if (messageClass === 'my-message') {
-        readStatus = `<div class="readed">${is_read ? 'VI' : 'V'}</div>`;
+        readStatus = `
+                ${is_read ? '<div class="readed-green">VI</div>' : '<div class="readed-gray">V</div>'}
+        `;
     }
 
     // Создаем HTML-разметку сообщения
@@ -373,7 +375,7 @@ async function uploadFile(file) {
         }
     const formData = new FormData();
 
-    const payload = {recipient_id: selectedUserId, content: `Файл ${file.name}`, is_file: true};
+    const payload = {recipient_id: selectedUserId, content: `Файл: ${file.name}`, is_file: true};
     try {
         const messageResponse = await fetch('/chat/messages', {
                 method: 'POST',
@@ -396,6 +398,7 @@ async function uploadFile(file) {
             const errorText = await response.text();
             throw new Error(`Ошибка при загрузке файла: ${errorText}`);
         }
+        addMessage(`Файл: ${file.name}`, selectedUserId, 1);
     } catch (error) {
         console.error('Ошибка:', error);
     }
@@ -405,8 +408,9 @@ async function uploadFile(file) {
 
 function addMessage(text, recipient_id, isFile = false) {
     const today = new Date();
+    today.setHours(today.getHours() - 5);
     const messagesContainer = document.getElementById('messages');
-    const messageContent = isFile ? `<a href="${text}" target="_blank">📎 ${text}</a>` : text;
+    const messageContent = isFile ? `<a href="${text}" target="_blank">⬇️${text}</a>` : text;
     messagesContainer.insertAdjacentHTML('beforeend', createMessageElement(messageContent, recipient_id, today, 0));
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
