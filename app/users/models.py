@@ -16,3 +16,4 @@ class User(Base):
     role: Mapped[str] = mapped_column(String, default='User')
     token: Mapped[str] = mapped_column(String, nullable=True)
     token_expiration: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
+    last_seen: Mapped[DateTime] = mapped_column(DateTime)

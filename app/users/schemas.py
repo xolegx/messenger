@@ -1,4 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
+from datetime import datetime
+from typing import Optional
 
 
 class SUserRegister(BaseModel):
@@ -43,3 +45,12 @@ class ChangeDepartmentRequest(BaseModel):
 
 class UserStatusUpdate(BaseModel):
     online_status: bool = Field(..., description="Обновление статуса")
+
+
+class LastSeen(BaseModel):
+    last_seen: datetime = Field(..., description="Последнее посещение")
+
+
+class UserLastSeen(BaseModel):
+    id: int = Field(..., description="id пользователя")
+    last_seen: Optional[datetime] = Field(..., description="Последнее посещение")

@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from app.exceptions import UserAlreadyExistsException, IncorrectEmailOrPasswordException, PasswordMismatchException
 from app.users.auth import get_password_hash, authenticate_user, create_access_token
 from app.users.core import UsersCORE
-from app.users.schemas import SUserRegister, SUserAuth, SUserRead, ChangePasswordRequest, ChangeNameRequest, ChangeDepartmentRequest
+from app.users.schemas import SUserRegister, SUserAuth, SUserRead, ChangePasswordRequest, ChangeNameRequest, ChangeDepartmentRequest, LastSeen, UserLastSeen
 from fastapi.templating import Jinja2Templates
 from app.users.dependencies import get_current_user
 from app.users.models import User
@@ -198,3 +198,24 @@ async def check_status():
         ]
 
         return {"users": user_statuses}
+
+
+@router.put("/last_seen")
+async def last_seen(request: LastSeen, current_user: User = Depends(get_current_user)):
+    current_user.last_seen = request.last_seen
+    async with async_session_maker() as session:
+        session.add(current_user)
+        await session.commit()
+    return {"message": "Last seen updated successfully"}
+
+
+@router.get("/users/last_seen", response_model=List[UserLastSeen])
+async def get_all_users_last_seen():
+    async with async_session_maker() as session:
+        result = await session.execute(select(User.id, User.last_seen))
+        users = result.all()
+
+    return [
+        UserLastSeen(id=user.id, last_seen=user.last_seen)
+        for user in users
+    ]

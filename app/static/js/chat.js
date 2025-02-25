@@ -72,7 +72,7 @@ async function fetchUsers() {
         const userList = document.getElementById('friends-list');
         statusOn(currentUserId);
         userList.innerHTML = '';
-
+        updateLastSeen();
         // Создаем элемент "Избранное" для текущего пользователя
         const favoriteElement = document.createElement('div');
         favoriteElement.classList.add('friend');
@@ -439,8 +439,54 @@ async function logout() {
 }
 
 
+async function updateLastSeen() {
+    const data = {
+        last_seen: new Date().toISOString()
+    };
+
+    try {
+        const response = await fetch('/auth/last_seen', {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data) // Преобразуем объект в JSON
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const result = await response.json();
+    } catch (error) {
+        console.error("Failed to update last seen:", error);
+    }
+}
 
 
+async function getAllUsersLastSeen() {
+    try {
+        const response = await fetch('/auth/users/last_seen');
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const users = await response.json();
+        console.log("List of users with last seen:", users);
+
+        // Пример отображения в консоли
+        users.forEach(user => {
+            console.log(`Id: ${user.id}, Last Seen: ${user.last_seen || "Never"}`);
+        });
+    } catch (error) {
+        console.error("Failed to fetch users' last seen data:", error);
+    }
+}
+
+
+
+getAllUsersLastSeen();
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
 let timeoutIdSelect;
 let timeoutIdAll;
