@@ -22,14 +22,16 @@ function connectWebSocket() {
 // Функция выбора пользователя
 async function selectUser(userId, userName, event) {
     selectedUserId = userId;
-    const userNametrim = userName.trim();
-    const userNamesplit = userNametrim.split(' ');
-    const headerName = userNamesplit.slice(1, 46).join(' ');
-    document.getElementById('chat-header').innerHTML = `<span>${headerName}</span>`;
+    await updateStatus(userId, userName); 
+    clearInterval(lastSeenInterval);
+    lastSeenInterval = setInterval(() => {
+        updateStatus(userId, userName);
+    }, 60000);
+
     document.getElementById('messageInput').disabled = false;
     document.getElementById('file-btn').disabled = false;
     document.getElementById('send-btn').disabled = false;
-    readMessages(userId);
+    //readMessages(userId);
     const notification = document.getElementById(`notification-${userId}`);
     if (notification) {
         notification.style.display = "none";
@@ -50,7 +52,7 @@ async function selectUser(userId, userName, event) {
         await loadMessages(userId);
         connectWebSocket();
         startMessagePolling(userId);
-        readMessages(userId);
+        //readMessages(userId);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
     statusOn(currentUserId);
@@ -59,8 +61,9 @@ async function selectUser(userId, userName, event) {
 // Обработка нажатий на пользователя
 function addUserClickListeners() {
     document.querySelectorAll('.friend').forEach(item => {
+        const userName = item.childNodes[3].childNodes[0].textContent.trim();
         const userId = item.getAttribute('data-user-id');
-        item.onclick = event => selectUser(userId, item.textContent, event);
+        item.onclick = event => selectUser(userId, userName, event);
     });
 }
 
@@ -84,14 +87,14 @@ async function fetchUsers() {
                 <div>Мои записи</div>`;
 
         userList.appendChild(favoriteElement);
-
+        //console.log(users);
         // Генерация списка остальных пользователей
         for (const user of users) {
             if (user.id !== currentUserId) {
                 const userElement = document.createElement('div');
                 userElement.classList.add('friend');
                 userElement.setAttribute('data-user-id', user.id);
-                userElement.setAttribute('status', user.online_status);
+                userElement.setAttribute('status', `${user.online_status ? 'online' : 'offline'}`);
                 const lastMessageResponse = await fetch(`/chat/messages/last_message/${user.id}`);
                 const lastMessageData = await lastMessageResponse.json();
                 const lastMessage = lastMessageData || "Нет сообщений";
@@ -99,7 +102,7 @@ async function fetchUsers() {
                 // Устанавливаем контент с учетом аватара, имени и последнего сообщения
                 userElement.innerHTML = `
                     <span style="font-size: 30px;">${avatars[user.avatar]}</span>
-                    <div>
+                    <div id="user_name">
                         ${user.name}
                         <small class="lastMessage" style="color: #8e8e8e;">${lastMessage}</small>
                     </div>
@@ -166,7 +169,6 @@ async function checkStatus() {
         if (!response.ok) {
             throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
         }
-
         const usersStat = await response.json();     
         usersStat.users.forEach(user =>  {
             if (user.id !== currentUserId) {
@@ -184,8 +186,7 @@ async function checkStatus() {
                     }
                 }
             }
-        });   
-        
+        });
     } catch (error) {
         console.error('Ошибка загрузки статусов:', error);
     }
@@ -224,28 +225,27 @@ async function checkUnreadCountMessages() {
     }
 }
 
-async function checkUnreadMessages() {
-            try {
-                const response = await fetch('/chat/messages/unread_counts/');
-                const data = await response.json();
+async function checkUnreadMessagesTitle() {
+    try {
+        const response = await fetch('/chat/messages/unread_counts/');
+        const data = await response.json();
 
-                const unreadCounts = data.unread_counts;
-                const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
-                
-                // Изменяем заголовок страницы в зависимости от количества непрочитанных сообщений
-                if (totalUnread > 0) {
-                    document.title = `(${totalUnread}) Новые сообщения`;
-                } else {
-                    document.title = "CosmoChat";
-                }
-            } catch (error) {
-                console.error('Ошибка при получении непрочитанных сообщений:', error);
-            }
+        const unreadCounts = data.unread_counts;
+        const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+        
+        if (totalUnread > 0) {
+            document.title = `(${totalUnread}) Новые сообщения`;
+        } else {
+            document.title = "CosmoChat";
         }
+    } catch (error) {
+        console.error('Ошибка при получении непрочитанных сообщений:', error);
+    }
+}
 
 async function readMessages(userId) {
     try {
-        const response = await fetch(`/chat/messages/read/${userId}`, { // Убедитесь, что вы передаете правильные параметры
+        const response = await fetch(`/chat/messages/read/${userId}`, { 
         method: 'PUT',
         headers: {'Content-Type': 'application/json',}
         });
@@ -266,7 +266,7 @@ async function loadMessages(userId) {
         const response = await fetch(`/chat/messages/${userId}`);
         const messages = await response.json();
         const messagesContainer = document.getElementById('messages');
-        
+        readMessages(userId);
         let lastDate = null; // Для отслеживания последней даты
         const today = new Date();
         messagesContainer.innerHTML = messages.map((message) => {
@@ -311,7 +311,8 @@ function createMessageElement(text, recipient_id, createdAt, is_file, is_read) {
     const date = new Date(createdAt);
     date.setHours(date.getHours() + 5); // Добавляем смещение времени
     const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');    const messageClass = currentUserId === recipient_id ? 'other-message' : 'my-message';
+    const minutes = date.getMinutes().toString().padStart(2, '0');    
+    const messageClass = currentUserId === recipient_id ? 'other-message' : 'my-message';
 
     // Если сообщение является файлом, добавляем ссылку
     let content;
@@ -347,6 +348,7 @@ async function sendMessage() {
     const message = messageInput.value.trim();
     clearTimeout(timeoutIdSelect);
     timeoutIdSelect = setTimeout(() => {statusOff(currentUserId);}, 120000);
+    fetchUsers();
     if (message && selectedUserId) {
         const payload = {recipient_id: selectedUserId, content: message};
 
@@ -360,7 +362,7 @@ async function sendMessage() {
             socket.send(JSON.stringify(payload));
             addMessage(message, selectedUserId);
             messageInput.value = '';
-            fetchUsers();
+            //fetchUsers();
         } catch (error) {
             console.error('Ошибка при отправке сообщения:', error);
         }
@@ -464,29 +466,64 @@ async function updateLastSeen() {
 }
 
 
-async function getAllUsersLastSeen() {
+async function getUserLastSeen(userId) {
     try {
-        const response = await fetch('/auth/users/last_seen');
+        const response = await fetch(`/auth/user/last_seen/${userId}`);
 
         if (!response.ok) {
             throw new Error(`Error: ${response.status} - ${response.statusText}`);
         }
-
-        const users = await response.json();
-        console.log("List of users with last seen:", users);
-
-        // Пример отображения в консоли
-        users.forEach(user => {
-            console.log(`Id: ${user.id}, Last Seen: ${user.last_seen || "Never"}`);
-        });
+        const last_seen = await response.json();
+        return last_seen.last_seen;
     } catch (error) {
         console.error("Failed to fetch users' last seen data:", error);
     }
 }
 
 
+function getUserStatus(dateLastSeen) {
+    const now = new Date();
+    const lastSeen = new Date(dateLastSeen);
+    lastSeen.setHours(lastSeen.getHours() + 5);
+    const diffInMilliseconds = now - lastSeen;
+    const diffInMinutes = Math.floor(diffInMilliseconds / 60000);
 
-getAllUsersLastSeen();
+    if (diffInMinutes < 3) {
+        return "онлайн";
+    } else if (diffInMinutes < 5) {
+        return "был(а) недавно";
+    } else if (diffInMinutes < 60) {
+        return `был(а) ${diffInMinutes} минут назад`;
+    } else {
+        const isToday = now.toDateString() === lastSeen.toDateString();
+        if (isToday) {
+            const hours = lastSeen.getHours().toString().padStart(2, '0');
+            const minutes = lastSeen.getMinutes().toString().padStart(2, '0');
+            return `был(а) сегодня в ${hours}:${minutes}`;
+        } else {
+            const date = lastSeen.toLocaleDateString();
+            const time = lastSeen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return `был(а) ${date} в ${time}`;
+        }
+    }
+}
+
+
+async function updateStatus(userId, userName) {
+    const dateLast = await getUserLastSeen(userId);
+    let status;
+    if (dateLast) {
+        status = getUserStatus(dateLast);
+    } else {
+        status = 'офлайн';
+    }
+    document.getElementById('chat-header').innerHTML = `<span>${userName}</span><br>
+    <small class="headStatus" style="color: #8e8e8e;">${status}</small>`;
+
+}
+
+
+
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
 let timeoutIdSelect;
 let timeoutIdAll;
@@ -506,6 +543,7 @@ const avatars = ['👩','👨','🧑','👧','👦','🧒','👶','👵','👴',
 
 let socket = null;
 let messagePollingInterval = null;
+let lastSeenInterval = null;
 
 let status = true;
 
@@ -570,7 +608,6 @@ document.addEventListener('click', (e) => {
     }
 });
 
-setInterval(checkUnreadMessages, 3000);
 
 // Отправка файлов
 const fileBtn = document.querySelector('.file-btn');
@@ -627,7 +664,8 @@ window.addEventListener('beforeunload', function (event) {
     statusOff(currentUserId);
 });
 timeoutIdAll = setTimeout(() => {statusOff(currentUserId);}, 120000);
-setInterval(() => checkStatus(),5000);
-setInterval(() => checkUnreadCountMessages(),1000);
+setInterval(() => checkStatus(),4700);
+setInterval(() => checkUnreadCountMessages(),2300);
+setInterval(checkUnreadMessagesTitle, 3100);
 
 

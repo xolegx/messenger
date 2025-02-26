@@ -117,7 +117,7 @@ async def update_avatar(user_id: int, new_avatar: int):
         return {"id": user.id, "avatar": user.avatar}
 
 
-@router.post("/change-password")
+@router.put("/change-password")
 async def change_password(request: ChangePasswordRequest, current_user: User = Depends(get_current_user)):
     if not pwd_context.verify(request.old_password, current_user.hashed_password):
         raise HTTPException(status_code=400, detail="Неправильный старый пароль")
@@ -131,7 +131,7 @@ async def change_password(request: ChangePasswordRequest, current_user: User = D
         return {"detail": "Пароль успешно изменен"}
 
 
-@router.post("/change-name")
+@router.put("/change-name")
 async def change_name(request: ChangeNameRequest, current_user: User = Depends(get_current_user)):
     existing_user = await UsersCORE.find_one_or_none(name=request.new_name)
     if existing_user:
@@ -144,7 +144,7 @@ async def change_name(request: ChangeNameRequest, current_user: User = Depends(g
     return {"detail": "Имя успешно изменено"}
 
 
-@router.post("/change-department")
+@router.put("/change-department")
 async def change_department(request: ChangeDepartmentRequest, current_user: User = Depends(get_current_user)):
     current_user.department = request.new_department  # Обновляем отдел пользователя
     async with async_session_maker() as session:
@@ -209,13 +209,13 @@ async def last_seen(request: LastSeen, current_user: User = Depends(get_current_
     return {"message": "Last seen updated successfully"}
 
 
-@router.get("/users/last_seen", response_model=List[UserLastSeen])
-async def get_all_users_last_seen():
+@router.get("/user/last_seen/{user_id}", response_model=UserLastSeen)
+async def get_user_last_seen(user_id):
     async with async_session_maker() as session:
-        result = await session.execute(select(User.id, User.last_seen))
-        users = result.all()
+        result = await session.execute(
+            select(User.id, User.last_seen).filter(User.id == user_id)
+        )
+        user = result.first()
 
-    return [
-        UserLastSeen(id=user.id, last_seen=user.last_seen)
-        for user in users
-    ]
+    return user
+
