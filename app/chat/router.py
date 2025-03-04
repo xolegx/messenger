@@ -1,4 +1,4 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request, Depends, HTTPException
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from typing import List, Dict
@@ -11,7 +11,7 @@ from app.users.dependencies import get_current_user
 from app.users.models import User
 from app.database import async_session_maker
 from sqlalchemy.future import select
-from sqlalchemy import update, or_
+from sqlalchemy import update, func
 
 import asyncio
 
@@ -67,7 +67,11 @@ async def send_message(message: MessageCreate, current_user: User = Depends(get_
     # }
     # await notify_user(message.recipient_id, message_data)
     # await notify_user(current_user.id, message_data)
-    return {'id': created_message_id, 'recipient_id': message.recipient_id, 'content': message.content, 'status': 'ok', 'msg': 'Message saved!'}
+    return {'id': created_message_id,
+            'recipient_id': message.recipient_id,
+            'content': message.content,
+            'status': 'ok',
+            'msg': 'Message saved!'}
 
 
 @router.put("/messages/{message_id}/read")
@@ -91,7 +95,6 @@ async def mark_as_read(message_id: int):
 @router.get("/messages/unread_counts/")
 async def count_unread_messages(user_data: User = Depends(get_current_user)):
     async with async_session_maker() as session:
-        # Получаем все сообщения, которые не прочитаны
         result = await session.execute(
             select(Message).filter(
                 Message.recipient_id == user_data.id,
@@ -123,46 +126,90 @@ async def read_messages(user_id: int, user_data: User = Depends(get_current_user
         )
         unread_messages = result.scalars().all()  # Получаем все непрочитанные сообщения
         if unread_messages:
-            # Обновляем is_read на True
             await session.execute(
-                update(Message)
-                    .where(
+                update(Message).where(
                     Message.id.in_([message.id for message in unread_messages])
-                )
-                    .values(is_read=True)
+                ).values(is_read=True)
             )
 
             # Не забудьте зафиксировать изменения
             await session.commit()
 
 
-@router.get("/messages/last_message/{user_id}")
-async def get_last_message(user_id: int):
+@router.get("/messages/last_message/")
+async def get_last_message(current_user: User = Depends(get_current_user)):
     async with async_session_maker() as session:
         result = await session.execute(
-            select(Message).filter(or_(
-                Message.recipient_id == user_id,
-                Message.sender_id == user_id
-            )).order_by(Message.id.desc()))
-        last_message = result.scalars().first()
+            select(Message).where(Message.id.in_(
+                select(func.max(Message.id)).group_by(
+                    Message.sender_id,
+                    Message.recipient_id
+                ))))
 
-        if not last_message:
-            return None
-        return decrypt_message(last_message.content)
+        last_message = result.scalars().all()
+        for message in last_message:
+            contact_id = message.sender_id if message.recipient_id == current_user.id else message.recipient_id
+            if contact_id not in last_message:
+                last_message[contact_id] = {
+                    "message_id": message.id,
+                    "sender_id": message.sender_id,
+                    "recipient_id": message.recipient_id,
+                    "content": decrypt_message(message.content),
+                }
+
+            return list(last_message.values())
 
 
 @router.get("/file-id-by-message/{message_id}")
 async def get_file_id_by_message(message_id: int, current_user: User = Depends(get_current_user)):
     async with async_session_maker() as session:
-        # Получаем сообщение по его ID
         db_message = await session.get(File, message_id)
         if not db_message:
             raise HTTPException(status_code=404, detail="Message not found")
 
-        # Получаем связанные файлы
         file_id = db_message.id
         if not file_id:
             raise HTTPException(status_code=404, detail="No files found for this message")
 
-        # В данном примере мы просто возвращаем первый файл, если их несколько
         return {"file_id": db_message}
+
+
+@router.put("/messages/{message_id}")
+async def edit_message(message_id: int, new_content: str):
+    async with async_session_maker() as session:
+        result = await session.execute(
+            select(Message).filter(Message.id == message_id)
+        )
+        message = result.scalar_one_or_none()
+
+        if not message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Message not found"
+            )
+
+        message.content = encrypt_message(new_content)
+        session.add(message)
+        await session.commit()
+
+        return {"message": "Message updated successfully"}
+
+
+@router.delete("/messages/{message_id}")
+async def delete_message(message_id: int):
+    async with async_session_maker() as session:
+        result = await session.execute(
+            select(Message).filter(Message.id == message_id)
+        )
+        message = result.scalar_one_or_none()
+
+        if not message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Message not found"
+            )
+
+        await session.delete(message)
+        await session.commit()
+
+        return {"message": "Message deleted successfully"}

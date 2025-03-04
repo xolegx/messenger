@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.exceptions import TokenExpiredException, TokenNoFoundException
+from app.exceptions import TokenExpiredException, TokenNoFoundException, NoJwtException
 from app.users.router import router as users_router
 from app.chat.router import router as chat_router
 from app.friends.router import router as friends_router
@@ -48,3 +48,7 @@ async def token_no_found_exception_handler(request: Request, exc: HTTPException)
     return RedirectResponse(url="/auth")
 
 
+@app.exception_handler(NoJwtException)
+async def no_token_exception_handler(request: Request, exc: HTTPException):
+    # Возвращаем редирект на страницу /auth
+    return RedirectResponse(url="/auth")

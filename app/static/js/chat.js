@@ -11,7 +11,7 @@ function connectWebSocket() {
     socket.onmessage = (event) => {
         const incomingMessage = JSON.parse(event.data);
         if (incomingMessage.recipient_id === selectedUserId) {
-            addMessage(incomingMessage.content, incomingMessage.recipient_id);
+            //addMessage(incomingMessage.content, incomingMessage.recipient_id);
         }
     };
 
@@ -95,16 +95,16 @@ async function fetchUsers() {
                 userElement.classList.add('friend');
                 userElement.setAttribute('data-user-id', user.id);
                 userElement.setAttribute('status', `${user.online_status ? 'online' : 'offline'}`);
-                const lastMessageResponse = await fetch(`/chat/messages/last_message/${user.id}`);
-                const lastMessageData = await lastMessageResponse.json();
-                const lastMessage = lastMessageData || "Нет сообщений";
+                //const lastMessageResponse = await fetch(`/chat/messages/last_message/`);
+                //const lastMessageData = await lastMessageResponse.json();
+                //const lastMessage = lastMessageData || "Нет сообщений";
 
                 // Устанавливаем контент с учетом аватара, имени и последнего сообщения
                 userElement.innerHTML = `
                     <span style="font-size: 30px;">${avatars[user.avatar]}</span>
                     <div id="user_name">
                         ${user.name}
-                        <small class="lastMessage" style="color: #8e8e8e;">${lastMessage}</small>
+                        <!--small class="lastMessage" style="color: #8e8e8e;">${lastMessage}</small-->
                     </div>
                     <div class="online-status ${user.online_status ? 'online' : 'offline'}"></div>
                     <div class="mail" id='notification-${user.id}' style="display: none;">💬<span class="notification-badge" id="unread-count-${user.id}"></span></div>
@@ -291,7 +291,8 @@ async function loadMessages(userId) {
                 message.recipient_id,
                 message.created_at,
                 message.is_file,
-                message.is_read
+                message.is_read,
+                message.id
             )}`;
         }).join('');
     } catch (error) {
@@ -307,7 +308,7 @@ function formatDate(date) {
 }
 
 
-function createMessageElement(text, recipient_id, createdAt, is_file, is_read) {
+function createMessageElement(text, recipient_id, createdAt, is_file, is_read, message_id) {
     const date = new Date(createdAt);
     date.setHours(date.getHours() + 5); // Добавляем смещение времени
     const hours = date.getHours().toString().padStart(2, '0');
@@ -330,16 +331,26 @@ function createMessageElement(text, recipient_id, createdAt, is_file, is_read) {
         `;
     }
 
+    // Добавляем HTML-разметку для иконок "удалить" и "редактировать"
+    const actionIcons = `
+        <div class="message-actions">
+            <span class="edit-icon" title="Редактировать" onclick="editMessage(${message_id})">✏️</span>
+            <span class="delete-icon" title="Удалить" onclick="deleteMessage(${message_id})">🗑️</span>
+        </div>
+    `;
+
     // Создаем HTML-разметку сообщения
     const message = `
-        <div class="message ${messageClass}" data-is-file="${is_file}">
+        <div class="message ${messageClass}" data-is-file="${is_file}" message_id="${message_id}">
             <div class="message-content">${content}</div>
             <div class="createdAt">${hours}:${minutes}</div>
             ${readStatus}
+            ${actionIcons} <!-- Добавляем действия -->
         </div>
     `;
     return message;
 }
+
     
 
 // Отправка сообщения
@@ -360,7 +371,7 @@ async function sendMessage() {
             });
 
             socket.send(JSON.stringify(payload));
-            addMessage(message, selectedUserId);
+            //addMessage(message, selectedUserId);
             messageInput.value = '';
             //fetchUsers();
         } catch (error) {
@@ -400,7 +411,7 @@ async function uploadFile(file) {
             const errorText = await response.text();
             throw new Error(`Ошибка при загрузке файла: ${errorText}`);
         }
-        addMessage(`Файл: ${file.name}`, selectedUserId, 1);
+        //addMessage(`Файл: ${file.name}`, selectedUserId, 1);
     } catch (error) {
         console.error('Ошибка:', error);
     }
@@ -413,7 +424,7 @@ function addMessage(text, recipient_id, isFile = false) {
     today.setHours(today.getHours() - 5);
     const messagesContainer = document.getElementById('messages');
     const messageContent = isFile ? `<a href="${text}" target="_blank">⬇️${text}</a>` : text;
-    messagesContainer.insertAdjacentHTML('beforeend', createMessageElement(messageContent, recipient_id, today, 0));
+    messagesContainer.insertAdjacentHTML('beforeend', createMessageElement(messageContent, recipient_id, today, 0, 0, 0));
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
     
@@ -520,6 +531,57 @@ async function updateStatus(userId, userName) {
     document.getElementById('chat-header').innerHTML = `<span>${userName}</span><br>
     <small class="headStatus" style="color: #8e8e8e;">${status}</small>`;
 
+}
+
+async function editMessage(message_id) {
+    const newContent = prompt("Введите новое сообщение:");
+    if (newContent) {
+        try {
+
+            const response = await fetch(`/chat/messages/${message_id}?new_content=${newContent}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+               // body: JSON.stringify({ new_content: newContent }),
+            });
+console.log(response);
+            if (response.ok) {
+                // Обновляем содержимое сообщения в DOM
+                const messageElement = document.querySelector(`[message_id="${message_id}"] .message-content`);
+                if (messageElement) {
+                    messageElement.textContent = newContent;
+                }
+            } else {
+                console.error("Ошибка при редактировании сообщения");
+            }
+        } catch (error) {
+            console.error("Ошибка:", error);
+        }
+    }
+}
+
+
+async function deleteMessage(message_id) {
+    if (confirm("Вы уверены, что хотите удалить это сообщение?")) {
+        try {
+            const response = await fetch(`/chat/messages/${message_id}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                // Удаляем сообщение из DOM
+                const messageElement = document.querySelector(`[message_id="${message_id}"]`);
+                if (messageElement) {
+                    messageElement.remove();
+                }
+            } else {
+                console.error("Ошибка при удалении сообщения");
+            }
+        } catch (error) {
+            console.error("Ошибка:", error);
+        }
+    }
 }
 
 

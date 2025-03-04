@@ -5,7 +5,8 @@ from fastapi.responses import HTMLResponse
 from app.exceptions import UserAlreadyExistsException, IncorrectEmailOrPasswordException, PasswordMismatchException
 from app.users.auth import get_password_hash, authenticate_user, create_access_token
 from app.users.core import UsersCORE
-from app.users.schemas import SUserRegister, SUserAuth, SUserRead, ChangePasswordRequest, ChangeNameRequest, ChangeDepartmentRequest, LastSeen, UserLastSeen
+from app.users.schemas import SUserRegister, SUserAuth, SUserRead, ChangePasswordRequest, ChangeNameRequest, \
+    ChangeDepartmentRequest, LastSeen, UserLastSeen
 from fastapi.templating import Jinja2Templates
 from app.users.dependencies import get_current_user
 from app.users.models import User
@@ -62,7 +63,12 @@ async def logout_user(response: Response):
 @router.get("/users", response_model=List[SUserRead])
 async def get_users():
     users_all = await UsersCORE.find_all()
-    return [{'id': user.id, 'name': user.name, 'avatar': user.avatar, 'online_status': user.online_status, 'department': user.department, 'role': user.role} for user in users_all]
+    return [{'id': user.id,
+             'name': user.name,
+             'avatar': user.avatar,
+             'online_status': user.online_status,
+             'department': user.department,
+             'role': user.role} for user in users_all]
 
 
 @router.get("/user/{user_id}", response_model=SUserRead)
@@ -93,7 +99,7 @@ async def get_files(request: Request):
 
 
 @router.delete("/user/")
-async def register_user(user_data: User = Depends(get_current_user)):
+async def delete_user(user_data: User = Depends(get_current_user)):
     await UsersCORE.delete_by_id(
         data_id=user_data.id
     )
@@ -218,4 +224,3 @@ async def get_user_last_seen(user_id):
         user = result.first()
 
     return user
-

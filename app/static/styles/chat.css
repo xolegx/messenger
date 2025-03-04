@@ -178,12 +178,6 @@ body {
     background-color: #f2f2f2;
 }
 
-.my-message {
-    background-color: rgba(232,255,237,0.2); /* Зеленый фон для ваших сообщений */
-    text-align: right; /* Выравнивание текста по правому краю */
-    margin-left: 20%;
-}
-
 .other-message {
     background-color: rgba(255,255,255,0.2); /* Серый фон для сообщений других пользователей */
     text-align: left; /* Выравнивание текста по левому краю */
@@ -343,3 +337,40 @@ body {
     text-decoration: none;
     color: inherit;
 }
+
+
+.my-message {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 20px;
+    position: relative;
+    background-color: rgba(232,255,237,0.2); /* Зеленый фон для ваших сообщений */
+    text-align: right; /* Выравнивание текста по правому краю */
+    margin-left: 20%; /* Добавляем для позиционирования иконок */
+}
+
+.my-message:hover .message-actions {
+    display: flex; /* Показываем иконки при наведении */
+}
+
+.message-actions {
+    display: none; /* Скрываем иконки по умолчанию */
+    position: absolute;
+    top: 87%;
+    right: 15px;
+    transform: translateY(-50%);
+    gap: 10px; /* Расстояние между иконками */
+}
+
+.edit-icon, .delete-icon {
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-color);
+    transition: color 0.3s;
+}
+
+.edit-icon:hover, .delete-icon:hover {
+    color: #ff0000; /* Изменяем цвет при наведении */
+}
+    
