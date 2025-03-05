@@ -9,7 +9,7 @@ class Friend(Base):
 
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), primary_key=True)
     friend_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), primary_key=True)
-    online_status: Mapped[bool] = mapped_column(Boolean, ForeignKey('users.id'))
+    online_status: Mapped[bool] = mapped_column(Boolean, ForeignKey('users.id'), default=False)
 
     user: Mapped[User] = relationship("User", foreign_keys=[user_id])
     friend: Mapped[User] = relationship("User", foreign_keys=[friend_id])
