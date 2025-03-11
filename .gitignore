@@ -1,3 +1,2 @@
 .env
-alembic.ini
 db.sqlite3

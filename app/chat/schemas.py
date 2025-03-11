@@ -11,7 +11,7 @@ class MessageRead(BaseModel):
     is_sticker: bool = Field(..., description="Стикер ли?")
     is_file: bool = Field(..., description="Файл ли?")
     is_read: bool = Field(..., description="Прочитанно ли?")
-    group_chat_id: int = Field(..., description="ID chat")
+    # group_chat_id: int = Field(..., description="ID chat")
 
 
 class MessageCreate(BaseModel):

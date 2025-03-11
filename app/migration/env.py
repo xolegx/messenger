@@ -14,7 +14,7 @@ from app.users.models import User
 from app.chat.models import Message
 from app.friends.models import Friend
 from app.files.models import File
-from app.groups.models import GroupChat, GroupChatMember
+# from app.groups.models import GroupChat, GroupChatMember
 
 config = context.config
 config.set_main_option("sqlalchemy.url", database_url)
