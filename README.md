@@ -42,40 +42,48 @@
 
 ### Шаг 1: Клонирование репозитория
 
-bash
-https://github.com/xolegx/messenger.git
+bash\
+https://github.com/xolegx/messenger.git \
 cd messenger-app
 
 ### Шаг 2: Установка зависимостей
 
 Убедитесь, что у вас установлен Python версии 3.11 или выше. Затем выполните:
 
-bash
+bash\
+python -m venv venv\
+source venv/bin/activate\
 pip install -r requirements.txt
 
 ### Шаг 3: Настройка окружения .env
 
 Создайте файл .env в корне проекта и добавьте следующие настройки (пример):
 
-SECRET_KEY=your_secret_key
-ALGORITHM=HS256
+bash\
+python fernet_key.py\
+(Скопируйте сгенерированный ключ чтобы вставить вместо your_crypt_key)
+
+touch .env\
+nano .env\
+SECRET_KEY=your_secret_key\
+ALGORITHM=HS256\
 CRYPT_KEY=your_crypt_key
 
 ### Шаг 4: Настройка базы данных
 
 Выполните миграции базы данных:
 
-bash
-alembic revision --autogenerate -m 'init'
+bash\
+alembic upgrade head\
+alembic revision --autogenerate -m 'init'\
 alembic upgrade head
 
 ### Шаг 5: Запуск приложения
 
 Запустите сервер:
 
-bash
-uvicorn app.main:app --reload
-
+bash\
+uvicorn app.main:app --reload\
 Приложение будет доступно по адресу: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
 
