@@ -44,7 +44,7 @@
 
 bash\
 https://github.com/xolegx/messenger.git \
-cd messenger-app
+cd messenger
 
 ### Шаг 2: Установка зависимостей
 
@@ -115,5 +115,6 @@ uvicorn app.main:app --reload\
 - [ ] Добавить индикацию "Печатает".
 - [ ] Добавить автопродление токена.
 - [ ] Добавить стикеры.
+- [ ] Максимально покрыть тестами.
 
 Бывает доступен на [http://xolegx89.asuscomm.com:8000](http://xolegx89.asuscomm.com:8000)
