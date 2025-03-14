@@ -57,14 +57,19 @@ pip install -r requirements.txt
 
 ### Шаг 3: Настройка окружения .env
 
-Создайте файл .env в корне проекта и добавьте следующие настройки (пример):
+Скопируйте сгенерированный ключ чтобы вставить вместо your_crypt_key
 
 bash\
-python fernet_key.py\
-(Скопируйте сгенерированный ключ чтобы вставить вместо your_crypt_key)
+python fernet_key.py
 
+Создайте файл .env в корне проекта:
+
+bash\
 touch .env\
-nano .env\
+nano .env
+
+и добавьте следующие настройки:
+
 SECRET_KEY=your_secret_key\
 ALGORITHM=HS256\
 CRYPT_KEY=your_crypt_key
@@ -91,6 +96,7 @@ uvicorn app.main:app --reload\
 ![img_3.png](img_3.png)
 Регистрация и авторизация
 
+![img_5.png](img_5.png)
 Главная (изображение сгенерировано)
 
 ![img.png](img.png)

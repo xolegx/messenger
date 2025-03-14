@@ -140,6 +140,45 @@ function deleteFile() {
 }
 
 
+async function statusOn(userId) {
+    try {
+        const response = await fetch(`/auth/user/status_on/${userId}`, { 
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ status: true }) // Пример добавления тела запроса
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        
+    } catch (error) {
+        console.error('Ошибка обновления статуса:', error);
+    }
+}
+
+async function statusOff(userId) {
+    try {
+        const response = await fetch(`/auth/user/status_off/${userId}`, { 
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        
+    } catch (error) {
+        console.error('Ошибка обновления статуса:', error);
+    }
+}
+
+
+
 const settingsBtn = document.querySelector('.settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
 const buttons = document.querySelectorAll('.set-btn');
@@ -195,3 +234,10 @@ searchBar.addEventListener('input', (e) => {
 });
 
 document.addEventListener('DOMContentLoaded', filesItem);
+
+window.addEventListener('beforeunload', function (event) {
+    statusOff(currentUserId);
+});
+timeoutIdAll = setTimeout(() => {statusOff(currentUserId);}, 180000);
+
+statusOn(currentUserId);

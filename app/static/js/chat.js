@@ -11,7 +11,7 @@ function connectWebSocket() {
     socket.onmessage = (event) => {
         const incomingMessage = JSON.parse(event.data);
         if (incomingMessage.recipient_id === selectedUserId) {
-            //addMessage(incomingMessage.content, incomingMessage.recipient_id);
+            addMessage(incomingMessage.content, incomingMessage.recipient_id);
         }
     };
 
@@ -26,7 +26,7 @@ async function selectUser(userId, userName, event) {
     clearInterval(lastSeenInterval);
     lastSeenInterval = setInterval(() => {
         updateStatus(userId, userName);
-    }, 60000);
+    }, 10000);
 
     document.getElementById('messageInput').disabled = false;
     document.getElementById('file-btn').disabled = false;
@@ -41,7 +41,7 @@ async function selectUser(userId, userName, event) {
     messagesContainer.style.backgroundImage = "url('/static/img/chatwall2.png')";
     clearTimeout(timeoutIdSelect);
     clearTimeout(timeoutIdAll);
-    timeoutIdSelect = setTimeout(() => {statusOff(currentUserId);}, 120000);
+    timeoutIdSelect = setTimeout(() => {statusOff(currentUserId);}, 180000);
     if (!event.target.classList.contains('active')) {
         document.querySelectorAll('.friend').forEach(item => item.classList.remove('active'));
         event.target.classList.add('active');
@@ -87,24 +87,22 @@ async function fetchUsers() {
                 <div>Мои записи</div>`;
 
         userList.appendChild(favoriteElement);
-        //console.log(users);
-        // Генерация списка остальных пользователей
+        const lastMessageResponse = await fetch(`/chat/messages/last_messages/`);
+        const lastMessageData = await lastMessageResponse.json();
+                //console.log(lastMessageData);
+// Генерация списка остальных пользователей
         for (const user of users) {
             if (user.id !== currentUserId) {
                 const userElement = document.createElement('div');
                 userElement.classList.add('friend');
                 userElement.setAttribute('data-user-id', user.id);
                 userElement.setAttribute('status', `${user.online_status ? 'online' : 'offline'}`);
-                //const lastMessageResponse = await fetch(`/chat/messages/last_message/`);
-                //const lastMessageData = await lastMessageResponse.json();
-                //const lastMessage = lastMessageData || "Нет сообщений";
-
                 // Устанавливаем контент с учетом аватара, имени и последнего сообщения
                 userElement.innerHTML = `
                     <span style="font-size: 30px;">${avatars[user.avatar]}</span>
                     <div id="user_name">
                         ${user.name}
-                        <!--small class="lastMessage" style="color: #8e8e8e;">${lastMessage}</small-->
+                        <small class="lastMessage" style="color: #8e8e8e;">${lastMessageData[user.id] || "Нет сообщений"}</small>
                     </div>
                     <div class="online-status ${user.online_status ? 'online' : 'offline'}"></div>
                     <div class="mail" id='notification-${user.id}' style="display: none;">💬<span class="notification-badge" id="unread-count-${user.id}"></span></div>
@@ -251,7 +249,6 @@ async function readMessages(userId) {
         });
         if (response.ok) {
             const messagesContainer = document.getElementById('messages');
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         } else {
             console.error('Ошибка');
         }
@@ -267,13 +264,16 @@ async function loadMessages(userId) {
         const messages = await response.json();
         const messagesContainer = document.getElementById('messages');
         readMessages(userId);
-        let lastDate = null; // Для отслеживания последней даты
+        let lastDate = null; 
         const today = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
         messagesContainer.innerHTML = messages.map((message) => {
-            const currentDate = new Date(message.created_at); // Получаем только дату
-            formated_currentDate = formatDate(currentDate); // Форматируем дату в DD.MM.YYYY
+            const currentDate = new Date(message.created_at); 
+            const isYesterday = yesterday.toDateString() === currentDate.toDateString();
+            formated_currentDate = formatDate(currentDate); 
             formated_today = formatDate(today);
-
+            
             let dateDivider = '';
 
             // Если дата текущего сообщения отличается от предыдущей, добавляем разделитель
@@ -281,6 +281,8 @@ async function loadMessages(userId) {
                 lastDate = formated_currentDate;
                 if (formated_currentDate === formated_today) {
                     dateDivider = `<div class="date-divider">Сегодня</div>`;
+                } else if (isYesterday){
+                    dateDivider = `<div class="date-divider">Вчера</div>`;
                 } else {
                     dateDivider = `<div class="date-divider">${formated_currentDate}</div>`;
                 }
@@ -318,7 +320,7 @@ function createMessageElement(text, recipient_id, createdAt, is_file, is_read, m
     // Если сообщение является файлом, добавляем ссылку
     let content;
     if (is_file) {
-        content = `<a href="" class="file-link">⬇️${text}</a>`;
+        content = `<a href="" class="file-link">${text}</a>`;
     } else {
         content = text; // Экранируем текст, чтобы избежать XSS
     }
@@ -350,7 +352,6 @@ function createMessageElement(text, recipient_id, createdAt, is_file, is_read, m
     `;
     return message;
 }
-
     
 
 // Отправка сообщения
@@ -358,7 +359,7 @@ async function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const message = messageInput.value.trim();
     clearTimeout(timeoutIdSelect);
-    timeoutIdSelect = setTimeout(() => {statusOff(currentUserId);}, 120000);
+    timeoutIdSelect = setTimeout(() => {statusOff(currentUserId);}, 180000);
     fetchUsers();
     if (message && selectedUserId) {
         const payload = {recipient_id: selectedUserId, content: message};
@@ -371,7 +372,7 @@ async function sendMessage() {
             });
 
             socket.send(JSON.stringify(payload));
-            //addMessage(message, selectedUserId);
+            addMessage(message, selectedUserId);
             messageInput.value = '';
             //fetchUsers();
         } catch (error) {
@@ -507,11 +508,19 @@ function getUserStatus(dateLastSeen) {
         return `был(а) ${diffInMinutes} минут назад`;
     } else {
         const isToday = now.toDateString() === lastSeen.toDateString();
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const isYesterday = yesterday.toDateString() === lastSeen.toDateString();
+
         if (isToday) {
             const hours = lastSeen.getHours().toString().padStart(2, '0');
             const minutes = lastSeen.getMinutes().toString().padStart(2, '0');
             return `был(а) сегодня в ${hours}:${minutes}`;
-        } else {
+        } else if (isYesterday) {
+            const hours = lastSeen.getHours().toString().padStart(2, '0');
+            const minutes = lastSeen.getMinutes().toString().padStart(2, '0');
+            return `был(а) вчера в ${hours}:${minutes}`;
+        }else {
             const date = lastSeen.toLocaleDateString();
             const time = lastSeen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             return `был(а) ${date} в ${time}`;
@@ -533,6 +542,7 @@ async function updateStatus(userId, userName) {
 
 }
 
+
 async function editMessage(message_id) {
     const newContent = prompt("Введите новое сообщение:");
     if (newContent) {
@@ -545,7 +555,6 @@ async function editMessage(message_id) {
                 },
                // body: JSON.stringify({ new_content: newContent }),
             });
-console.log(response);
             if (response.ok) {
                 // Обновляем содержимое сообщения в DOM
                 const messageElement = document.querySelector(`[message_id="${message_id}"] .message-content`);
@@ -722,12 +731,16 @@ async function check(){
 
 //check();
 document.addEventListener('DOMContentLoaded', fetchUsers);
+
 window.addEventListener('beforeunload', function (event) {
     statusOff(currentUserId);
 });
-timeoutIdAll = setTimeout(() => {statusOff(currentUserId);}, 120000);
+timeoutIdAll = setTimeout(() => {statusOff(currentUserId);}, 180000);
+
 setInterval(() => checkStatus(),4700);
+
 setInterval(() => checkUnreadCountMessages(),2300);
+
 setInterval(checkUnreadMessagesTitle, 3100);
 
 

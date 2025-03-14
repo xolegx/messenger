@@ -11,7 +11,7 @@ from app.users.dependencies import get_current_user
 from app.users.models import User
 from app.database import async_session_maker
 from sqlalchemy.future import select
-from sqlalchemy import update, func
+from sqlalchemy import update, func, or_
 
 import asyncio
 
@@ -136,28 +136,18 @@ async def read_messages(user_id: int, user_data: User = Depends(get_current_user
             await session.commit()
 
 
-@router.get("/messages/last_message/")
+@router.get("/messages/last_messages/")
 async def get_last_message(current_user: User = Depends(get_current_user)):
     async with async_session_maker() as session:
         result = await session.execute(
-            select(Message).where(Message.id.in_(
-                select(func.max(Message.id)).group_by(
-                    Message.sender_id,
-                    Message.recipient_id
-                ))))
-
-        last_message = result.scalars().all()
-        for message in last_message:
+            select(Message).filter(or_(Message.sender_id == current_user.id, Message.recipient_id == current_user.id)))
+        last_messages = result.scalars().all()
+        last_message ={}
+        for message in last_messages:
             contact_id = message.sender_id if message.recipient_id == current_user.id else message.recipient_id
-            if contact_id not in last_message:
-                last_message[contact_id] = {
-                    "message_id": message.id,
-                    "sender_id": message.sender_id,
-                    "recipient_id": message.recipient_id,
-                    "content": decrypt_message(message.content),
-                }
-
-            return list(last_message.values())
+            if contact_id not in last_messages:
+                last_message[contact_id] = decrypt_message(message.content)
+        return last_message
 
 
 @router.get("/file-id-by-message/{message_id}")
