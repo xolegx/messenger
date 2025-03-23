@@ -42,7 +42,7 @@ async def upload_file(file: UploadFile = File,
         await session.commit()
         await session.refresh(db_file)
 
-        return {'message': 'File uploaded successfully!'}
+        return {'id_file': db_file.id}
 
 
 @router.get("/", response_model=List[FileRead])

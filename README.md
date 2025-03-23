@@ -43,7 +43,7 @@
 ### Шаг 1: Клонирование репозитория
 
 bash\
-https://github.com/xolegx/messenger.git \
+git clone https://github.com/xolegx/messenger.git \
 cd messenger
 
 ### Шаг 2: Установка зависимостей
