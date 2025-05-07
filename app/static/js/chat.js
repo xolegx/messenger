@@ -288,7 +288,7 @@ async function loadMessages(userId) {
                 }
             }
 
-            return `${dateDivider}${createMessageElement(
+            return `${dateDivider}${ createMessageElement(
                 message.content,
                 message.recipient_id,
                 message.created_at,
@@ -310,17 +310,32 @@ function formatDate(date) {
 }
 
 
+function fetchFileId(message_id) {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", `/chat/file-id-by-message/${message_id}`, false); // false делает запрос синхронным
+    xhr.send();
+
+    if (xhr.status === 200) {
+        const response = JSON.parse(xhr.responseText);
+        return response.file_id; // Предполагаем, что файл ID возвращается в объекте с ключом file_id
+    } else {
+        console.error('Error fetching file ID:', xhr.statusText);
+        return null;
+    }
+}
+
+
 function createMessageElement(text, recipient_id, createdAt, is_file, is_read, message_id) {
     const date = new Date(createdAt);
     date.setHours(date.getHours() + 5); // Добавляем смещение времени
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');    
     const messageClass = currentUserId === recipient_id ? 'other-message' : 'my-message';
-
     // Если сообщение является файлом, добавляем ссылку
     let content;
     if (is_file) {
-        content = `<a href="/files/download-file/${message_id}" class="file-link">${text}</a>`;
+        const file_id = fetchFileId(message_id);
+        content = `<a href="/files/download-file/${file_id}" class="file-link">${text}</a>`;
     } else {
         content = text; // Экранируем текст, чтобы избежать XSS
     }
@@ -426,7 +441,7 @@ function addMessage(text, recipient_id, isFile = false) {
     today.setHours(today.getHours() - 5);
     const messagesContainer = document.getElementById('messages');
     const messageContent = isFile ? `<a href="${text}" target="_blank">⬇️${text}</a>` : text;
-    messagesContainer.insertAdjacentHTML('beforeend', createMessageElement(messageContent, recipient_id, today, 0, 0, 0));
+    messagesContainer.insertAdjacentHTML('beforeend',  createMessageElement(messageContent, recipient_id, today, 0, 0, 0));
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
     

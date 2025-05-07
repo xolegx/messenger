@@ -154,7 +154,8 @@ async def get_last_message(current_user: User = Depends(get_current_user)):
 @router.get("/file-id-by-message/{message_id}")
 async def get_file_id_by_message(message_id: int, current_user: User = Depends(get_current_user)):
     async with async_session_maker() as session:
-        db_message = await session.get(File, message_id)
+        result = await session.execute(select(File).filter(File.message_id == message_id))
+        db_message = result.scalars().first()
         if not db_message:
             raise HTTPException(status_code=404, detail="Message not found")
 
@@ -162,7 +163,7 @@ async def get_file_id_by_message(message_id: int, current_user: User = Depends(g
         if not file_id:
             raise HTTPException(status_code=404, detail="No files found for this message")
 
-        return {"file_id": db_message}
+        return {"file_id": db_message.id}
 
 
 @router.put("/messages/{message_id}")
