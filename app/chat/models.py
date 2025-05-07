@@ -1,3 +1,5 @@
+from typing import List
+
 from sqlalchemy import Integer, Text, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 from app.database import Base
@@ -15,9 +17,9 @@ class Message(Base):
     is_read: Mapped[bool] = mapped_column(Boolean, default=False)
     is_sticker: Mapped[bool] = mapped_column(Boolean, default=False)
     is_file: Mapped[bool] = mapped_column(Boolean, default=False)
-    # id_file: Mapped[int] = mapped_column(Integer, ForeignKey("file.id"), default=False)
+    id_file: Mapped[int] = mapped_column(Integer, ForeignKey("files.id"), nullable=True)
 
     # sender = relationship("User", foreign_keys=[sender_id], back_populates="sent_messages")
     # recipient = relationship("User", foreign_keys=[recipient_id], back_populates="received_messages")
     # group_chat = relationship("GroupChat", back_populates="messages")
-    # files = relationship("File", back_populates="messages")
+    # files = relationship("File", back_populates="message", foreign_keys="[File.message_id]", remote_side=[id])

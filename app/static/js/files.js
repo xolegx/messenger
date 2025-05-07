@@ -76,7 +76,7 @@ async function filesItem() {
                     <div class="file-icon">${fileIcon[icon]}</div>
                     <div class="file-details">
                         <div class="file-name">${file.filename}</div>
-                        <div class="file-meta">От: ${file.sender} • ${(file.file_size / 1024).toFixed(2)} KB • ${day}.${month}.${year} </div>
+                        <div class="file-meta">От: ${file.sender} • Кому: ${file.recipient} • ${(file.file_size / 1024).toFixed(2)} KB • ${day}.${month}.${year} </div>
                     </div>
                 </div>
                 <div class="file-actions">

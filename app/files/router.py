@@ -1,16 +1,22 @@
+import logging
 import os
 from datetime import datetime
 from fastapi import APIRouter, UploadFile, Depends, HTTPException, Form
 from fastapi.responses import FileResponse
 from typing import List
 from sqlalchemy.future import select
+from sqlalchemy import or_
+
+from app.chat.models import Message
 from app.database import async_session_maker
 from app.users.models import User
 from app.users.dependencies import get_current_user
 from app.files.schemas import FileRead
 from app.files.models import File
 
-
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 router = APIRouter(prefix='/files', tags=['File'])
 
 UPLOAD_DIRECTORY = "./uploaded_files"
@@ -23,20 +29,28 @@ if not os.path.exists(UPLOAD_DIRECTORY):
 async def upload_file(file: UploadFile = File,
                       message_id: int = Form(...),
                       recipient_id: int = Form(...),
+                      sender_id: int = Form(...),
                       current_user: User = Depends(get_current_user)):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = timestamp + file.filename
     file_path = os.path.join(UPLOAD_DIRECTORY, filename)
+
     with open(file_path, "wb") as buffer:
         buffer.write(await file.read())
     file_size = os.path.getsize(file_path)
     async with async_session_maker() as session:
+        recipient_data = await session.execute(select(User).filter(User.id == recipient_id))
+        recipient = recipient_data.scalars().first()
+        # logger.info(f"info: {recipient.name}")
+
         db_file = File(filename=file.filename,
                        file_url=file_path,
                        file_size=file_size,
                        sender=current_user.name,
+                       recipient=recipient.name,
                        message_id=message_id,
                        recipient_id=recipient_id,
+                       sender_id=sender_id,
                        )
         session.add(db_file)
         await session.commit()
@@ -48,7 +62,7 @@ async def upload_file(file: UploadFile = File,
 @router.get("/", response_model=List[FileRead])
 async def get_files(current_user: User = Depends(get_current_user)):
     async with async_session_maker() as session:
-        result = await session.execute(select(File).filter(File.recipient_id == current_user.id))
+        result = await session.execute(select(File).filter(or_(File.recipient_id == current_user.id, File.sender_id == current_user.id)))
         files = result.scalars().all()
         return files
 

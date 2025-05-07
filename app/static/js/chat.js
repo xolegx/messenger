@@ -320,7 +320,7 @@ function createMessageElement(text, recipient_id, createdAt, is_file, is_read, m
     // Если сообщение является файлом, добавляем ссылку
     let content;
     if (is_file) {
-        content = `<a href="" class="file-link">${text}</a>`;
+        content = `<a href="/files/download-file/${message_id}" class="file-link">${text}</a>`;
     } else {
         content = text; // Экранируем текст, чтобы избежать XSS
     }
@@ -404,6 +404,7 @@ async function uploadFile(file) {
         formData.append('file', file);
         formData.append('message_id', messageData.id);
         formData.append('recipient_id', selectedUserId);
+        formData.append('sender_id', currentUserId);
         const response = await fetch('/files/upload-file/', {
             method: 'POST',
             body: formData,

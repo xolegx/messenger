@@ -94,8 +94,8 @@ async def get_groups(request: Request, user_data: User = Depends(get_current_use
 
 
 @router.get("/files")
-async def get_files(request: Request):
-    return templates.TemplateResponse("files.html", {"request": request})
+async def get_files(request: Request, user_data: User = Depends(get_current_user)):
+    return templates.TemplateResponse("files.html", {"request": request, "user": user_data})
 
 
 @router.delete("/user/")

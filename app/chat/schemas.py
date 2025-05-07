@@ -20,4 +20,4 @@ class MessageCreate(BaseModel):
     content: str = Field(..., description="Содержимое сообщения")
     is_sticker: bool = Field(default=False, description="Стикер ли?")
     is_file: bool = Field(default=False, description="Файл ли?")
-    # id_file: int = Field(..., description="Уникальный идентификатор файла")
+    # id_file: int = Field(default=None, description="Уникальный идентификатор файла")
