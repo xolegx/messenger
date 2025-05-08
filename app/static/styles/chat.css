@@ -340,6 +340,11 @@ body {
     color: inherit;
 }
 
+.img-link {
+    max-width: 68vh;
+
+}
+
 .my-message {
     margin-top: 10px;
     margin-bottom: 10px;

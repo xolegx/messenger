@@ -58,6 +58,7 @@ async def send_message(message: MessageCreate, current_user: User = Depends(get_
         content=encrypted_content,  # Сохраняем зашифрованное содержимое
         recipient_id=message.recipient_id,
         is_file=message.is_file,
+        is_img=message.is_img,
         # id_file=message.id_file,
     )
     # message_data = {

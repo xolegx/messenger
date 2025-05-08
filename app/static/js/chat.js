@@ -294,7 +294,8 @@ async function loadMessages(userId) {
                 message.created_at,
                 message.is_file,
                 message.is_read,
-                message.id
+                message.id,
+                message.is_img
             )}`;
         }).join('');
     } catch (error) {
@@ -325,17 +326,20 @@ function fetchFileId(message_id) {
 }
 
 
-function createMessageElement(text, recipient_id, createdAt, is_file, is_read, message_id) {
+function createMessageElement(text, recipient_id, createdAt, is_file, is_read, message_id, is_img) {
     const date = new Date(createdAt);
     date.setHours(date.getHours() + 5); // Добавляем смещение времени
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');    
     const messageClass = currentUserId === recipient_id ? 'other-message' : 'my-message';
     // Если сообщение является файлом, добавляем ссылку
-    let content;
+    let content = '';
     if (is_file) {
         const file_id = fetchFileId(message_id);
-        content = `<a href="/files/download-file/${file_id}" class="file-link">${text}</a>`;
+        if (is_img){
+            content += `<img src=/files/download-file/${file_id} class="img-link"> <br>`;
+        }
+        content += `<a href="/files/download-file/${file_id}" class="file-link">${text}</a>`;
     } else {
         content = text; // Экранируем текст, чтобы избежать XSS
     }
@@ -403,8 +407,16 @@ async function uploadFile(file) {
         return;
         }
     const formData = new FormData();
+    const fileName = file.name;
+    const fileExtension = fileName.split('.').pop().toLowerCase();
+    let payload;
+    if (['jpg', 'jpeg', 'png', 'bmp', 'gif'].includes(fileExtension)){
+        payload = {recipient_id: selectedUserId, content: `Файл: ${file.name}`, is_file: true, is_img: true};
+    }
+    else {
+        payload = {recipient_id: selectedUserId, content: `Файл: ${file.name}`, is_file: true};
 
-    const payload = {recipient_id: selectedUserId, content: `Файл: ${file.name}`, is_file: true};
+    }
     try {
         const messageResponse = await fetch('/chat/messages', {
                 method: 'POST',
