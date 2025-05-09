@@ -71,8 +71,8 @@ nano .env
 ```
 и добавьте следующие настройки:
 ```bash
-SECRET_KEY=your_secret_key\
-ALGORITHM=HS256\
+SECRET_KEY=your_secret_key
+ALGORITHM=HS256
 CRYPT_KEY=your_crypt_key
 ```
 ### Шаг 4: Настройка базы данных
