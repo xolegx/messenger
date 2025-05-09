@@ -12,6 +12,7 @@ class File(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     filename: Mapped[str] = mapped_column(Text, index=True)
     file_url: Mapped[str] = mapped_column(Text)
+    preview_url: Mapped[str] = mapped_column(Text, nullable=True)
     file_size: Mapped[str] = mapped_column(Text)
     message_id: Mapped[int] = mapped_column(Integer, ForeignKey('messages.id'), nullable=True)
     sender: Mapped[str] = mapped_column(Text)

@@ -1,8 +1,8 @@
 """'init'
 
-Revision ID: f8f9911b016d
+Revision ID: f080c9cf8ed4
 Revises: 
-Create Date: 2025-05-08 15:34:30.303857
+Create Date: 2025-05-09 16:21:41.223418
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'f8f9911b016d'
+revision: str = 'f080c9cf8ed4'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -87,6 +87,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('filename', sa.Text(), nullable=False),
     sa.Column('file_url', sa.Text(), nullable=False),
+    sa.Column('preview_url', sa.Text(), nullable=True),
     sa.Column('file_size', sa.Text(), nullable=False),
     sa.Column('message_id', sa.Integer(), nullable=True),
     sa.Column('sender', sa.Text(), nullable=False),

@@ -6,6 +6,8 @@ from fastapi.responses import FileResponse
 from typing import List
 from sqlalchemy.future import select
 from sqlalchemy import or_
+from PIL import Image, UnidentifiedImageError
+import mimetypes
 
 from app.chat.models import Message
 from app.database import async_session_maker
@@ -34,10 +36,23 @@ async def upload_file(file: UploadFile = File,
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = timestamp + file.filename
     file_path = os.path.join(UPLOAD_DIRECTORY, filename)
+    preview = "preview_" + timestamp + file.filename
+    preview_path = os.path.join(UPLOAD_DIRECTORY, preview)
 
     with open(file_path, "wb") as buffer:
         buffer.write(await file.read())
+
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if mime_type and mime_type.startswith('image'):
+        try:
+            with Image.open(file_path) as img:
+                img.thumbnail((500, 500))
+                img.save(preview_path)
+        except UnidentifiedImageError:
+            return {'error': 'Uploaded file is not a valid image.'}
+
     file_size = os.path.getsize(file_path)
+
     async with async_session_maker() as session:
         recipient_data = await session.execute(select(User).filter(User.id == recipient_id))
         recipient = recipient_data.scalars().first()
@@ -45,6 +60,7 @@ async def upload_file(file: UploadFile = File,
 
         db_file = File(filename=file.filename,
                        file_url=file_path,
+                       preview_url=preview_path,
                        file_size=file_size,
                        sender=current_user.name,
                        recipient=recipient.name,
@@ -75,6 +91,20 @@ async def download_file(file_id: int, current_user: User = Depends(get_current_u
             raise HTTPException(status_code=404, detail="File not found")
 
         file_path = db_file.file_url
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="File not found on server")
+
+        return FileResponse(path=file_path, filename=db_file.filename, media_type='application/octet-stream')
+
+
+@router.get("/download-preview/{file_id}")
+async def download_preview(file_id: int, current_user: User = Depends(get_current_user)):
+    async with async_session_maker() as session:
+        db_file = await session.get(File, file_id)
+        if not db_file:
+            raise HTTPException(status_code=404, detail="File not found")
+
+        file_path = db_file.preview_url
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="File not found on server")
 

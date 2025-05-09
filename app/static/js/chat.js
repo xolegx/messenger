@@ -337,7 +337,7 @@ function createMessageElement(text, recipient_id, createdAt, is_file, is_read, m
     if (is_file) {
         const file_id = fetchFileId(message_id);
         if (is_img){
-            content += `<img src=/files/download-file/${file_id} class="img-link"> <br>`;
+            content += `<img src=/files/download-preview/${file_id} class="img-link"> <br>`;
         }
         content += `<a href="/files/download-file/${file_id}" class="file-link">${text}</a>`;
     } else {
